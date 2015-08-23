@@ -16,7 +16,7 @@ operand = float_ | integer
 # Operators
 signop = oneOf("+ -")
 addop = oneOf("+ -")
-multop = oneOf("* /")
+multop = oneOf("* / //")
 expop = oneOf("^ **")
 factop = Literal("!")
 
@@ -39,6 +39,9 @@ def multiply(op1, op2):
 
 def divide(op1, op2):
     return op1 / op2
+
+def intdivide(op1, op2):
+    return int(op1 // op2)
 
 def exponent(op1, op2):
     return op1 ** op2
@@ -77,6 +80,8 @@ def process_infix_left(s, loc, toks):
             fn = multiply
         elif op == "/":
             fn = divide
+        elif op == "//":
+            fn = intdivide
         l.append(ParseResults([fn, lhs, rhs]))
     return ParseResults(l)
 

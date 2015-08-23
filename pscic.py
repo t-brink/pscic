@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
-from psiclib import parseexpr, evaluate
+from psciclib import parseexpr, evaluate
 
 while True:
-    expr = input("> ")
+    try:
+        expr = input("> ")
+    except EOFError:
+        print()
+        break
     tree = parseexpr.parse(expr)
     print(tree)
     val = evaluate.evaluate(tree)

@@ -1,5 +1,10 @@
 In order:
 
+* write a bunch of tests to ensure correct operation! [decent set done]
+* replace use of infixNotation() by custom code (cf. fourFn.py)
+* test this custom code extensively by using the tests that you wrote (you did, right?)
+* then we can go on to the harder part of supporting functions!
+
 * support functions
 ** bunch of letters followed by open paranthesis
 ** may be implemented as a special kind of opening paranthesis
