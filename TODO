@@ -1,0 +1,24 @@
+In order:
+
+* support functions
+** bunch of letters followed by open paranthesis
+** may be implemented as a special kind of opening paranthesis
+
+* support constants (a bunch of letters instead of numbers)
+** e, pi, physical constants, ...
+
+* support variables (x,y,z only perhaps?)
+** calculate everything except them
+** really useful when introducing the = sign, to solve a Dreisatz etc.
+
+* support units
+** this is the meat of the matter
+** may be hard to parse
+
+* support unit conversion ("to" keyword like qalculate)
+
+* support plots
+
+* GUI
+
+* other fancy stuff?

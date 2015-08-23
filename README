@@ -1,0 +1,11 @@
+Dependencies
+============
+
+* Python 3.x
+* pyparsing
+
+later (TODO)
+
+* pint
+* pyqt5 (optional)
+* matplotlib (optional)
