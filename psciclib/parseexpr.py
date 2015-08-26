@@ -1,7 +1,7 @@
 import math
 from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Optional,
-                       nums, alphas,
-                       infixNotation, opAssoc, ParseResults)
+                       Suppress, Forward, FollowedBy, Group, OneOrMore,
+                       nums, alphas, ParseResults)
 
 # Definitions. #########################################################
 # Operands
@@ -100,15 +100,75 @@ def process_factop(s, loc, toks):
     return ParseResults(l)
 
 # Expression ###########################################################
-expr = infixNotation(
-    operand,
-    [("!", 1, opAssoc.LEFT, process_factop),
-     (expop, 2, opAssoc.RIGHT, process_expop),
-     (signop, 1, opAssoc.RIGHT, process_signop),
-     (multop, 2, opAssoc.LEFT, process_infix_left),
-     (addop, 2, opAssoc.LEFT, process_infix_left)]
-)
+#expr = infixNotation(
+#    operand,
+#    [("!", 1, opAssoc.LEFT, process_factop),
+#     (expop, 2, opAssoc.RIGHT, process_expop),
+#     (signop, 1, opAssoc.RIGHT, process_signop),
+#     (multop, 2, opAssoc.LEFT, process_infix_left),
+#     (addop, 2, opAssoc.LEFT, process_infix_left)]
+#)
 
+lpar = Suppress('(')
+rpar = Suppress(')')
+expr = Forward()
+lastExpr = operand | ( lpar + expr + rpar )
+
+# Factorial
+thisExpr = Forward()
+matchExpr = (
+    FollowedBy(lastExpr + factop) + Group( lastExpr + OneOrMore(factop) )
+)
+matchExpr.setParseAction(process_factop)
+thisExpr <<= ( matchExpr | lastExpr )
+lastExpr = thisExpr
+
+# Exponent
+thisExpr = Forward()
+matchExpr = (
+    FollowedBy(lastExpr + expop + thisExpr)
+    + Group( lastExpr + OneOrMore( expop + thisExpr ) )
+)
+matchExpr.setParseAction(process_expop)
+thisExpr <<= ( matchExpr | lastExpr )
+lastExpr = thisExpr
+
+# Sign.
+thisExpr = Forward()
+# try to avoid LR with this extra test (?)
+if not isinstance(signop, Optional):
+    opExpr = Optional(signop)
+else:
+    opExpr = signop
+matchExpr = (
+    FollowedBy(opExpr.expr + thisExpr)
+    + Group( opExpr + thisExpr )
+)
+matchExpr.setParseAction(process_signop)
+thisExpr <<= ( matchExpr | lastExpr )
+lastExpr = thisExpr
+
+# Multiplication.
+thisExpr = Forward()
+matchExpr = (
+    FollowedBy(lastExpr + multop + lastExpr)
+    + Group( lastExpr + OneOrMore( multop + lastExpr ) )
+)
+matchExpr.setParseAction(process_infix_left)
+thisExpr <<= ( matchExpr | lastExpr )
+lastExpr = thisExpr
+
+# Addition.
+thisExpr = Forward()
+matchExpr = (
+    FollowedBy(lastExpr + addop + lastExpr)
+    + Group( lastExpr + OneOrMore( addop + lastExpr ) )
+)
+matchExpr.setParseAction(process_infix_left)
+thisExpr <<= ( matchExpr | lastExpr )
+lastExpr = thisExpr
+
+expr <<= lastExpr
 
 def parse(string):
     return expr.parseString(string, parseAll=True)[0]

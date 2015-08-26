@@ -19,6 +19,15 @@ In order:
 * support units
 ** this is the meat of the matter
 ** may be hard to parse
+** it is easy, as pint uses them like this:
+
+         12.0 * ureg.meter -> <Quantity(12.0, 'meter')>
+
+   allowing us to treat units like constants! Nice!
+** temperature (non-K) may be harder to get right in a nice way
+   (semantics are not always clear).
+
+* a ° postfix operator, which converts to radians
 
 * support unit conversion ("to" keyword like qalculate)
 
