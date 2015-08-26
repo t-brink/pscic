@@ -1,16 +1,18 @@
 In order:
 
-* write a bunch of tests to ensure correct operation! [decent set done]
-* replace use of infixNotation() by custom code (cf. fourFn.py)
-* test this custom code extensively by using the tests that you wrote (you did, right?)
-* then we can go on to the harder part of supporting functions!
+* The parser should already spit out custom objects instead of lists/tuples,
+  that way pretty-printing is easy, too (some example code does it like this, the boolean
+  logic parser, perhaps?)
 
 * support functions
 ** bunch of letters followed by open paranthesis
-** may be implemented as a special kind of opening paranthesis
+** may be implemented as a special kind of opening parenthesis
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ...
+** if a constant follows a number or ), the multiplication sign may be left out;
+   in contrast to qalculate the sign is needed if the constant is in front of
+   the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined)
 
 * support variables (x,y,z only perhaps?)
 ** calculate everything except them
@@ -36,3 +38,4 @@ In order:
 * GUI
 
 * other fancy stuff?
+** sympy for symbolic calculations?

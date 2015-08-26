@@ -284,6 +284,24 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("+3 ** 4"), 3 ** 4)
         self.assertEqual(pe("3 ** +4"), 3 ** 4)
         self.assertEqual(pe("+3 ** +4"), 3 ** 4)
+        #
+        self.assertEqual(pe("3 ^ --4"), 3 ** 4)
+        self.assertEqual(pe("-3 ^ --4"), -(3 ** 4))
+        self.assertEqual(pe("3 ^ -+4"), 3 ** (-4))
+        self.assertEqual(pe("-3 ^ +-4"), -(3 ** (-4)))
+        self.assertEqual(pe("3 ^ ++4"), 3 ** 4)
+        self.assertEqual(pe("+3 ^ ++4"), 3 ** 4)
+        #
+        self.assertEqual(pe("3 ** --4"), 3 ** 4)
+        self.assertEqual(pe("-3 ** --4"), -(3 ** 4))
+        self.assertEqual(pe("3 ** -+4"), 3 ** (-4))
+        self.assertEqual(pe("-3 ** +-4"), -(3 ** (-4)))
+        self.assertEqual(pe("3 ** ++4"), 3 ** 4)
+        self.assertEqual(pe("+3 ** ++4"), 3 ** 4)
+        #
+        self.assertEqual(pe("3 ^ -4 ^ -4"), 3 ** -(4 ** (-4)))
+        self.assertEqual(pe("3 ** -4 ** -4"), 3 ** -(4 ** (-4)))
+        self.assertEqual(pe("3 ^ -4 ** -4"), 3 ** -(4 ** (-4)))
 
     def test_parentheses(self):
         self.assertEqual(pe("(1)"), 1)
