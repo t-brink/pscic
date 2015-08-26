@@ -1,25 +1,31 @@
 import math
-from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Optional,
-                       Suppress, Forward, FollowedBy, Group,
+from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Regex,
+                       Optional, Suppress, Forward, FollowedBy, Group,
                        OneOrMore, ZeroOrMore,
                        nums, alphas, ParseResults)
 
 # Definitions. #########################################################
 # Operands
 integer = Word(nums).setParseAction(lambda t: int(t[0]))
+
 pm = Literal('+') | Literal('-')
 decimal_part = Literal(".") + Optional( Word(nums) )
 exp_part = CaselessLiteral("e") + Optional( pm ) + Word(nums)
 float_ = Word(nums) + ( (Optional(decimal_part) + exp_part) | decimal_part )
 float_.setParseAction(lambda t: float("".join(t)))
+
 operand = float_ | integer
 
 # Operators
 signop = oneOf("+ -")
 addop = oneOf("+ -")
-multop = oneOf("* / //")
+multop = oneOf("· * ÷ / //")
 expop = oneOf("^ **")
 factop = Literal("!")
+
+# Identifier, must start with unicode letter, can then contain unicode
+# letter, unicode number, or underscore.
+identifier = Regex(r'[^\W\d_]\w*')
 
 
 # Operator implementations #############################################
@@ -77,9 +83,9 @@ def process_infix_left(s, loc, toks):
             fn = add
         elif op == "-":
             fn = subtract
-        elif op == "*":
+        elif op == "*" or op == "·":
             fn = multiply
-        elif op == "/":
+        elif op == "/" or op == "÷":
             fn = divide
         elif op == "//":
             fn = intdivide
@@ -111,6 +117,12 @@ def process_factop(s, loc, toks):
         l.append(ParseResults([factorial, lhs]))
     return ParseResults(l)
 
+def process_func(s, loc, toks):
+    # TODO: Noop for now.
+    toks[0][0] = lambda arg: arg
+    return toks
+
+
 # Expression ###########################################################
 expr = Forward()
 
@@ -138,19 +150,26 @@ sign_expr.setParseAction(process_signop)
 sign_term <<= ( sign_expr | exp_term )
 
 # Multiplication.
-mult_term = Forward()
 mult_expr = Group( sign_term + OneOrMore( multop + sign_term ) )
 mult_expr.setParseAction(process_infix_left)
-mult_term <<= ( mult_expr | sign_term )
+mult_term = ( mult_expr | sign_term )
 
 # Addition.
-add_term = Forward()
 add_expr = Group( mult_term + OneOrMore( addop + mult_term ) )
 add_expr.setParseAction(process_infix_left)
-add_term <<= ( add_expr | mult_term )
+add_term = ( add_expr | mult_term )
+
+# Function.
+# TODO: multiple args separated by comma/semicolon(which one?)
+#                  pro                contra
+#     comma:   easy, nice look     usage as decimal point, thousand separator
+# semicolon:   no other usage      harder to type
+func_expr = Group( identifier + lpar + add_term + rpar )
+func_expr.setParseAction(process_func)
+func_term = ( func_expr | add_term )
 
 # Complete expression.
-expr <<= add_term
+expr <<= func_term
 
 def parse(string):
     return expr.parseString(string, parseAll=True)[0]

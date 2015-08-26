@@ -5,8 +5,10 @@ In order:
   logic parser, perhaps?)
 
 * support functions
-** bunch of letters followed by open paranthesis
-** may be implemented as a special kind of opening parenthesis
+** bunch of letters followed by open paranthesis [done]
+** needs to do something (but before implement the very first thing)
+** write tests!!!!
+** also "negative" tests, where we expect failure
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ...
@@ -39,3 +41,12 @@ In order:
 
 * other fancy stuff?
 ** sympy for symbolic calculations?
+
+* test:
+** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
+   them
+
+* time every calculation and output the time it took somewhere (status line, ...)
+
+* hex/oct/bin input/output.  support floats.
+** support roman numerals somehow

@@ -57,21 +57,25 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_multiply_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
         b = random.randint(-sys.maxsize, sys.maxsize)
+        self.assertEqual(pe("{} · {}", a, b), a * b)
         self.assertEqual(pe("{} * {}", a, b), a * b)
 
     def test_multiply_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
+        self.assertEqual(pe("{} · {}", a, b), a * b)
         self.assertEqual(pe("{} * {}", a, b), a * b)
 
     def test_divide_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
         b = random.randint(-sys.maxsize, sys.maxsize)
+        self.assertEqual(pe("{} ÷ {}", a, b), a / b)
         self.assertEqual(pe("{} / {}", a, b), a / b)
 
     def test_divide_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
+        self.assertEqual(pe("{} ÷ {}", a, b), a / b)
         self.assertEqual(pe("{} / {}", a, b), a / b)
 
     def test_intdivide_int(self):
@@ -118,6 +122,7 @@ class TestResultType(unittest.TestCase):
 
     def test_float(self):
         self.assertIsInstance(pe("1."), float)
+        self.assertIsInstance(pe("01."), float)
         self.assertIsInstance(pe("1.0"), float)
         self.assertIsInstance(pe("1e4"), float)
         self.assertIsInstance(pe("1e+4"), float)
@@ -128,6 +133,7 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("1.0e+4"), float)
         self.assertIsInstance(pe("1.0e-4"), float)
         self.assertEqual(pe("1."), 1.0)
+        self.assertEqual(pe("01."), 1.0)
         self.assertEqual(pe("1.0"), 1.0)
         self.assertEqual(pe("1e4"), 1e4)
         self.assertEqual(pe("1e+4"), 1e4)
@@ -138,6 +144,7 @@ class TestResultType(unittest.TestCase):
         self.assertEqual(pe("1.0e+4"), 1e4)
         self.assertEqual(pe("1.0e-4"), 1e-4)
         self.assertIsInstance(pe("-1."), float)
+        self.assertIsInstance(pe("-01."), float)
         self.assertIsInstance(pe("-1.0"), float)
         self.assertIsInstance(pe("-1e4"), float)
         self.assertIsInstance(pe("-1e+4"), float)
@@ -148,6 +155,7 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("-1.0e+4"), float)
         self.assertIsInstance(pe("-1.0e-4"), float)
         self.assertEqual(pe("-1."), -1.0)
+        self.assertEqual(pe("-01."), -1.0)
         self.assertEqual(pe("-1.0"), -1.0)
         self.assertEqual(pe("-1e4"), -1e4)
         self.assertEqual(pe("-1e+4"), -1e4)
