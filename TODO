@@ -6,7 +6,7 @@ In order:
 ** handle complex numbers! i.e. support them but go to float as soon as possible!
 
 * support constants (a bunch of letters instead of numbers)
-** e, pi, physical constants, ...
+** e, pi, physical constants, ... [e,pi,i implemented]
 ** if a constant follows a number or ), the multiplication sign may be left out;
    in contrast to qalculate the sign is needed if the constant is in front of
    the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined)

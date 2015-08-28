@@ -20,7 +20,10 @@ exp_part = CaselessLiteral("e") + Optional( pm ) + Word(nums)
 float_ = Word(nums) + ( (Optional(decimal_part) + exp_part) | decimal_part )
 float_.setParseAction(lambda t: float("".join(t)))
 
-operand = float_ | integer
+variable = identifier.copy()
+variable.setParseAction(operators.ConstVar.process)
+
+operand = float_ | integer | variable
 
 # Operators
 signop = oneOf("+ -")

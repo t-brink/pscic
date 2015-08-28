@@ -307,3 +307,51 @@ class Function(Operator):
     def evaluate(self):
         arg, = self._eval(self.arg)
         return self.fn(arg)
+
+
+class ConstVar(Operator):
+    # Base class for constants and variables.
+
+    _D = collections.namedtuple("_D", ["canonical_name", "constvar", "value"])
+
+    _constants_and_variables = {
+        "e": _D("e", "const", math.e),
+        "i": _D("i", "const", 1j),
+        "pi": _D("π", "const", math.pi),
+        "π": _D("π", "const", math.pi),
+
+        # Variables.
+        "x": _D("x", "var", None),
+    }
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        try:
+            name, type_, value = cls._constants_and_variables[toks[0]]
+        except KeyError:
+            raise UnknownConstantError(toks[0])
+        if type_ == "const":
+            return ParseResults([Constant(name, value)])
+        elif type_ == "var":
+            return ParseResults([Variable(name)])
+
+    def __str__(self):
+        return str(self.name)
+
+
+class Constant(ConstVar):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def evaluate(self):
+        return self.value
+
+
+class Variable(ConstVar):
+    def __init__(self, name):
+        self.name = name
+
+    def evaluate(self):
+        # TODO     
+        raise RuntimeError("Cannot yet evaluate variable!")
