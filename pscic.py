@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from psciclib import parseexpr
+from psciclib.exceptions import Error
 
 while True:
     try:
@@ -8,7 +9,15 @@ while True:
     except EOFError:
         print()
         break
-    tree = parseexpr.parse(expr)
+    try:
+        tree = parseexpr.parse(expr)
+    except Error as e:
+        print(e)
+        continue
     print(tree)
-    val = tree.evaluate()
+    try:
+        val = tree.evaluate()
+    except ValueError as e:
+        print("ValueError:", e)
+        continue
     print("=", val)

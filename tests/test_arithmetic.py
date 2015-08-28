@@ -318,3 +318,27 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("(1+1)"), 2)
         self.assertEqual(pe("((1+1) * 2) ^ 3"), 64)
         self.assertEqual(pe("-(1+1)"), -2)
+
+    def test_nested_functions(self):
+        self.assertEqual(pe("cos(sin(1))"), math.cos(math.sin(1.0)))
+
+    def test_added_functions(self):
+        self.assertEqual(pe("cos(1) + sin(1)"), math.cos(1.0) + math.sin(1.0))
+
+    def test_multiplied_functions(self):
+        self.assertEqual(pe("cos(1) * sin(1)"), math.cos(1.0) * math.sin(1.0))
+
+    def test_function_combinations(self):
+        self.assertEqual(pe("exp(2.3) ^ log(2.3)"), math.exp(2.3) ** math.log(2.3))
+        self.assertEqual(pe("exp(2.3) ** log(2.3)"), math.exp(2.3) ** math.log(2.3))
+        self.assertEqual(pe("-log(2.3)"), -math.log(2.3))
+        self.assertEqual(pe("exp(2.3) + log(2.3)"), math.exp(2.3) + math.log(2.3))
+        self.assertEqual(pe("exp(2.3) - log(2.3)"), math.exp(2.3) - math.log(2.3))
+        self.assertEqual(pe("exp(2.3) * log(2.3)"), math.exp(2.3) * math.log(2.3))
+        self.assertEqual(pe("exp(2.3) / log(2.3)"), math.exp(2.3) / math.log(2.3))
+        self.assertEqual(pe("exp(2.3) // log(2.3)"),
+                         int(math.exp(2.3) // math.log(2.3)))
+        self.assertEqual(pe("log(exp(4))!"), math.factorial(math.log(math.exp(4))))
+
+class TestFunctions(unittest.TestCase):
+    pass # TODO                     

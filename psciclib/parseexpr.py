@@ -7,6 +7,10 @@ from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Regex,
 from . import operators
 
 # Definitions. #########################################################
+# Identifier, must start with unicode letter, can then contain unicode
+# letter, unicode number, or underscore.
+identifier = Regex(r'[^\W\d_]\w*')
+
 # Operands
 integer = Word(nums).setParseAction(lambda t: int(t[0]))
 
@@ -25,22 +29,29 @@ multop = oneOf("· * ÷ / //")
 expop = oneOf("^ **")
 factop = Literal("!")
 
-# Identifier, must start with unicode letter, can then contain unicode
-# letter, unicode number, or underscore.
-identifier = Regex(r'[^\W\d_]\w*')
-
 
 # Expression ###########################################################
 expr = Forward()
 
+# Term.
 lpar = Suppress('(')
 rpar = Suppress(')')
 term = operand | ( lpar + expr + rpar )
 
+# Function.
+# TODO: multiple args separated by comma/semicolon(which one?)
+#                  pro                contra
+#     comma:   easy, nice look     usage as decimal point, thousand separator
+# semicolon:   no other usage      harder to type
+func_term = Forward()
+func_expr = Group( identifier + lpar + func_term + rpar )
+func_expr.setParseAction(operators.Function.process)
+func_term <<= ( func_expr | term )
+
 # Factorial
-fact_expr = Group( term + OneOrMore(factop) )
+fact_expr = Group( func_term + OneOrMore(factop) )
 fact_expr.setParseAction(operators.PostfixSymbol.process)
-fact_term = ( fact_expr | term )
+fact_term = ( fact_expr | func_term )
 
 # Exponent
 exp_term = Forward()
@@ -66,18 +77,8 @@ add_expr = Group( mult_term + OneOrMore( addop + mult_term ) )
 add_expr.setParseAction(operators.InfixLeftSymbol.process)
 add_term = ( add_expr | mult_term )
 
-# Function.
-# TODO: multiple args separated by comma/semicolon(which one?)
-#                  pro                contra
-#     comma:   easy, nice look     usage as decimal point, thousand separator
-# semicolon:   no other usage      harder to type
-func_term = Forward()
-func_expr = Group( identifier + lpar + func_term + rpar )
-func_expr.setParseAction(operators.Function.process)
-func_term <<= ( func_expr | add_term )
-
 # Complete expression.
-expr <<= func_term
+expr <<= add_term
 
 def parse(string):
     tree = operators.Expression(expr.parseString(string, parseAll=True)[0])

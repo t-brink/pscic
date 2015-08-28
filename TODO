@@ -1,10 +1,9 @@
 In order:
 
 * support functions
-** bunch of letters followed by open paranthesis [done]
-** needs to do something
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
+** handle complex numbers! i.e. support them but go to float as soon as possible!
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ...
@@ -46,3 +45,5 @@ In order:
 
 * hex/oct/bin input/output.  support floats.
 ** support roman numerals somehow
+
+* currency conversion
