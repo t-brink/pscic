@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from psciclib import parseexpr, evaluate
+from psciclib import parseexpr
 
 while True:
     try:
@@ -10,5 +10,5 @@ while True:
         break
     tree = parseexpr.parse(expr)
     print(tree)
-    val = evaluate.evaluate(tree)
+    val = tree.evaluate()
     print("=", val)

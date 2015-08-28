@@ -1,12 +1,8 @@
 In order:
 
-* The parser should already spit out custom objects instead of lists/tuples,
-  that way pretty-printing is easy, too (some example code does it like this, the boolean
-  logic parser, perhaps?)
-
 * support functions
 ** bunch of letters followed by open paranthesis [done]
-** needs to do something (but before implement the very first thing)
+** needs to do something
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
 

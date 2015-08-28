@@ -4,13 +4,12 @@ import sys
 import math
 
 from psciclib.parseexpr import parse
-from psciclib.evaluate import evaluate
 
 
 # Helpers.
 def pe(s, *args):
     print(s.format(*args))
-    return evaluate(parse(s.format(*args)))
+    return parse(s.format(*args)).evaluate()
 
 def rand(min, max):
     return random.random() * (max-min) + min
