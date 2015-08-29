@@ -12,6 +12,8 @@ In order:
 ** if a constant follows a number or ), the multiplication sign may be left out;
    in contrast to qalculate the sign is needed if the constant is in front of
    the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined)
+** the previous point works now but too broadly, the excluded things from above
+   are not excluded, yet! It is still 1 1 1 = 1*1*1.
 ** write tests!
 
 * support units

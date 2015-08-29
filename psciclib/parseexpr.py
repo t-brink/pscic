@@ -84,9 +84,18 @@ sign_expr.setParseAction(operators.PrefixSymbol.process)
 sign_term <<= ( sign_expr | exp_term )
 
 # Multiplication.
-mult_expr = Group( sign_term + OneOrMore( multop + sign_term ) )
-mult_expr.setParseAction(operators.InfixLeftSymbol.process)
-mult_term = ( mult_expr | sign_term )
+mult_expr1 = Group( sign_term + OneOrMore( multop + sign_term ) )
+mult_expr1.setParseAction(operators.InfixLeftSymbol.process)
+# Multiplication without sign. RHS must be variable/constant/unit.
+# TODO: RHS can also be a number, not sure I like it                   
+mult_expr2 = Group( sign_term + OneOrMore( exp_term ) ) # variable
+def wrap_mult_expr2(s, loc, toks):
+    # Insert multiplication signs.
+    for i in range(len(toks[0])-1, 0, -1):
+        toks[0].insert(i, "*")
+    return operators.InfixLeftSymbol.process(s, loc, toks)
+mult_expr2.setParseAction(wrap_mult_expr2)
+mult_term = ( mult_expr1 | mult_expr2 | sign_term )
 
 # Addition.
 add_expr = Group( mult_term + OneOrMore( addop + mult_term ) )
