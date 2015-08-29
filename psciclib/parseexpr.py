@@ -1,9 +1,11 @@
 import math
 import re
-from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Regex,
+import pyparsing
+from pyparsing import (ParserElement, Word, oneOf, Literal, CaselessLiteral, Regex,
                        Optional, Suppress, Forward, FollowedBy, Group,
                        OneOrMore, ZeroOrMore,
                        nums, alphas, ParseResults)
+ParserElement.enablePackrat() # Significant speedup.
 
 from . import operators
 
