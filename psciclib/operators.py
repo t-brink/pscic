@@ -5,6 +5,7 @@ import collections
 from pyparsing import ParseResults
 
 from .exceptions import UnknownFunctionError, UnknownConstantError
+from . import units
 
 
 class Operator(metaclass=abc.ABCMeta):
@@ -337,11 +338,19 @@ class ConstVar(Operator):
         try:
             name, type_, value = cls._constants_and_variables[toks[0]]
         except KeyError:
-            raise UnknownConstantError(toks[0])
+            # Perhaps it is a unit known by pint?
+            try:
+                value = units.ureg(toks[0])
+                type_ = "unit"
+                name = "{:~}".format(value) # includes a leading 1 :-(
+            except units.UndefinedUnitError:
+                raise UnknownConstantError(toks[0])
         if type_ == "const":
             return ParseResults([Constant(name, value)])
         elif type_ == "var":
             return ParseResults([Variable(name)])
+        elif type_ == "unit":
+            return ParseResults([Unit(name, value)])
 
     def __str__(self):
         return str(self.name)
