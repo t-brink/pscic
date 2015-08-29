@@ -17,6 +17,13 @@ In order:
 * support units
 ** temperature (non-K) may be harder to get right in a nice way
    (semantics are not always clear).
+** Parse multiplied units like Js = J*s; this may be ambiguous! Be careful!
+** get a list of all supported unit strings: ureg._units.keys()
+** some short units are bad special case them: 
+*** h is planck, not hour
+*** pt is pint not point
+*** ...
+
 
 * a ° postfix operator, which converts to radians
 

@@ -319,6 +319,8 @@ class Function(Operator):
         # Square root.
         "sqrt": _D("√", math.sqrt),
         "√": _D("√", math.sqrt),
+        # Absolute.
+        "abs": _D("abs", abs),
         # Error function.
         "erf": _D("erf", math.erf),
         "erfc": _D("erfc", math.erfc),

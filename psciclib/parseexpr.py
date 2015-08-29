@@ -47,7 +47,9 @@ term = operand | ( lpar + expr + rpar )
 #     comma:   easy, nice look     usage as decimal point, thousand separator
 # semicolon:   no other usage      harder to type
 func_term = Forward()
-func_expr = Group( identifier + lpar + func_term + rpar )
+#func_expr = Group( identifier + lpar + func_term + rpar )
+# TODO: the next line makes everything super-slow!                         
+func_expr = Group( identifier + lpar + expr + rpar )
 func_expr.setParseAction(operators.Function.process)
 func_term <<= ( func_expr | term )
 

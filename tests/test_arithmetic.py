@@ -340,5 +340,10 @@ class TestParser(unittest.TestCase):
                          int(math.exp(2.3) // math.log(2.3)))
         self.assertEqual(pe("log(exp(4))!"), math.factorial(math.log(math.exp(4))))
 
+    def test_term_in_function(self):
+        self.assertEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
+        self.assertEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
+        self.assertEqual(pe("ln(2 ^ 3)"), math.log(2**3))
+
 class TestFunctions(unittest.TestCase):
     pass # TODO                     
