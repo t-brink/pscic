@@ -25,3 +25,15 @@ class UnknownConstantError(Error):
 
     def __repr__(self):
         return "UnknownConstantError({!r})".format(self.constname)
+
+
+class UnknownUnitError(Error):
+    """Unknown unit name."""
+    def __init__(self, unitname):
+        self.unitname = unitname
+
+    def __str__(self):
+        return "Unknown unit: {!s}".format(self.unitname)
+
+    def __repr__(self):
+        return "UnknownUnitError({!r})".format(self.unitname)

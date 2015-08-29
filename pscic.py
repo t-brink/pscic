@@ -2,6 +2,7 @@
 
 from psciclib import parseexpr
 from psciclib.exceptions import Error
+from psciclib.units import Q_
 
 while True:
     try:
@@ -20,4 +21,7 @@ while True:
     except ValueError as e:
         print("ValueError:", e)
         continue
+    if isinstance(val, Q_):
+        # pretty-print units.
+        val = "{:P~}".format(val)
     print("=", val)

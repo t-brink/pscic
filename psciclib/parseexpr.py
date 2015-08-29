@@ -82,7 +82,49 @@ add_term = ( add_expr | mult_term )
 
 # Complete expression.
 expr <<= add_term
+expr.setParseAction(operators.Expression.process)
 
+
+# A unit expression, containing only units. ############################
+unit_expr = Forward()
+
+single_unit = identifier.copy()
+single_unit.setParseAction(operators.Unit.process)
+
+unit_term = single_unit | ( lpar + unit_expr + rpar )
+
+# Exponent
+unit_exp_term = Forward()
+# 'signop' in exponent is handled in process_expop().
+unit_exp_expr = Group( unit_term + expop + ZeroOrMore(signop) + exp_term )
+unit_exp_expr.setParseAction(operators.Exponent.process)
+unit_exp_term <<= ( unit_exp_expr | unit_term )
+
+# Sign.
+unit_sign_term = Forward()
+unit_sign_expr = \
+    FollowedBy(_signop.expr + unit_sign_term) + Group( _signop + unit_sign_term )
+unit_sign_expr.setParseAction(operators.PrefixSymbol.process)
+unit_sign_term <<= ( unit_sign_expr | unit_exp_term )
+
+# Multiplication.
+unit_mult_expr = Group( unit_sign_term + OneOrMore( multop + unit_sign_term ) )
+unit_mult_expr.setParseAction(operators.InfixLeftSymbol.process)
+unit_mult_term = ( unit_mult_expr | unit_sign_term )
+
+unit_expr <<= unit_mult_term
+unit_expr.setParseAction(operators.Expression.process)
+
+
+# A command line (most often just an expression) #######################
+to_token = Literal("to") + unit_expr
+
+conversion_cmd = expr + to_token
+conversion_cmd.setParseAction(operators.Conversion.process)
+
+cmdln = conversion_cmd | expr
+
+
+# Parse it.
 def parse(string):
-    tree = operators.Expression(expr.parseString(string, parseAll=True)[0])
-    return tree
+    return cmdln.parseString(string, parseAll=True)[0]

@@ -4,7 +4,9 @@ import collections
 
 from pyparsing import ParseResults
 
-from .exceptions import UnknownFunctionError, UnknownConstantError
+from .exceptions import (UnknownFunctionError,
+                         UnknownConstantError,
+                         UnknownUnitError)
 from . import units
 
 
@@ -52,7 +54,9 @@ class Expression(Operator):
 
     @classmethod
     def process(cls, s, loc, toks):
-        raise RuntimeError("Do not call this method")
+        if len(toks) != 1:
+            raise ValueError("BUG: Something went wrong with the parsing.")
+        return cls(toks[0])
 
     def __str__(self):
         return str(self.expr)
@@ -60,6 +64,29 @@ class Expression(Operator):
     def evaluate(self, **kwargs):
         retval, = self._eval(self.expr, **kwargs)
         return retval
+
+
+class Conversion(Operator):
+    """<expression> to <unit>"""
+    def __init__(self, expr, to_unit):
+        self.expr = expr
+        self.to_unit = to_unit
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        if len(toks) != 3:
+            raise ValueError("BUG: Something went wrong with the parsing.")
+        # [<expr>, "to", <unit_expr>]
+        return cls(toks[0], toks[2])
+
+    def __str__(self):
+        return "{!s} to {!s}".format(self.expr, self.to_unit)
+
+    def evaluate(self, **kwargs):
+        expr, to_unit = self._eval(self.expr, self.to_unit, **kwargs)
+        if not isinstance(expr, units.Q_):
+            expr *= units.ureg("1") # dimensionless
+        return expr.to(to_unit)
 
 
 class SymbolOperator(Operator):
@@ -289,6 +316,9 @@ class Function(Operator):
         "log": _D("log", math.log),
         "log10": _D("log10", math.log10),
         "log2": _D("log2", math.log2),
+        # Square root.
+        "sqrt": _D("√", math.sqrt),
+        "√": _D("√", math.sqrt),
         # Error function.
         "erf": _D("erf", math.erf),
         "erfc": _D("erfc", math.erfc),
@@ -340,17 +370,13 @@ class ConstVar(Operator):
         except KeyError:
             # Perhaps it is a unit known by pint?
             try:
-                value = units.ureg(toks[0])
-                type_ = "unit"
-                name = "{:~}".format(value) # includes a leading 1 :-(
-            except units.UndefinedUnitError:
+                return Unit.process(s, loc, toks)
+            except UnknownUnitError:
                 raise UnknownConstantError(toks[0])
         if type_ == "const":
             return ParseResults([Constant(name, value)])
         elif type_ == "var":
             return ParseResults([Variable(name)])
-        elif type_ == "unit":
-            return ParseResults([Unit(name, value)])
 
     def __str__(self):
         return str(self.name)
@@ -380,4 +406,13 @@ class Variable(ConstVar):
 
 class Unit(Constant):
     # A special kind of constant.
-    pass
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        try:
+            value = units.ureg(toks[0])
+        except units.UndefinedUnitError:
+            raise UnknownUnitError(toks[0])
+        name = "{:~}".format(value) # includes a leading 1 :-(
+        return cls(name, value)
+

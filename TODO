@@ -12,14 +12,13 @@ In order:
 ** if a constant follows a number or ), the multiplication sign may be left out;
    in contrast to qalculate the sign is needed if the constant is in front of
    the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined)
+** write tests!
 
 * support units
 ** temperature (non-K) may be harder to get right in a nice way
    (semantics are not always clear).
 
 * a ° postfix operator, which converts to radians
-
-* support unit conversion ("to" keyword like qalculate)
 
 * support plots
 
