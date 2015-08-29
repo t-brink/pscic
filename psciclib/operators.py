@@ -10,7 +10,13 @@ from .exceptions import UnknownFunctionError, UnknownConstantError
 class Operator(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def evaluate(self):
+    def evaluate(self, **kwargs):
+        # The kwargs give values to variables!
+        #
+        #TODO for all subclasses: handle symbolic variable by not     
+        #actually evaluating!                                         
+        #
+        #TODO: also try to simplify expressions with variables in it  
         pass
 
     @classmethod
@@ -25,14 +31,16 @@ class Operator(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def _eval(*args):
+    def _eval(*args, **kwargs):
         """For every arg, return the evaluated form.
 
         If an arg is an instance of Operator call .evaluate(),
         otherwise pass it back as is.
 
+        Any keyword arg is interpreted as assigning a value to a variable.
+
         """
-        return tuple((arg.evaluate() if isinstance(arg, Operator) else arg)
+        return tuple((arg.evaluate(**kwargs) if isinstance(arg, Operator) else arg)
                      for arg in args)
 
 
@@ -48,8 +56,8 @@ class Expression(Operator):
     def __str__(self):
         return str(self.expr)
 
-    def evaluate(self):
-        retval, = self._eval(self.expr)
+    def evaluate(self, **kwargs):
+        retval, = self._eval(self.expr, **kwargs)
         return retval
 
 
@@ -97,40 +105,40 @@ class InfixLeftSymbol(InfixSymbol):
 class Plus(InfixLeftSymbol):
     symbol = "+"
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return lhs + rhs
 
 
 class Minus(InfixLeftSymbol):
     symbol = "-"
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return lhs - rhs
 
 
 class Times(InfixLeftSymbol):
     symbol = "·"
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return lhs * rhs
 
 
 class Divide(InfixLeftSymbol):
     symbol = "÷"
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return lhs / rhs
 
 
 class IntDivide(InfixLeftSymbol):
     symbol = "//"
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return int(lhs // rhs)
 
 
@@ -156,8 +164,8 @@ class Exponent(InfixSymbol):
             rhs = toks[0][2]
         return cls(lhs, rhs)
 
-    def evaluate(self):
-        lhs, rhs = self._eval(self.lhs, self.rhs)
+    def evaluate(self, **kwargs):
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
         return lhs ** rhs
 
 
@@ -184,8 +192,8 @@ class PostfixSymbol(SymbolOperator):
 class Factorial(PostfixSymbol):
     symbol = "!"
 
-    def evaluate(self):
-        lhs, = self._eval(self.lhs)
+    def evaluate(self, **kwargs):
+        lhs, = self._eval(self.lhs, **kwargs)
         return math.factorial(lhs)
 
 
@@ -211,16 +219,16 @@ class PrefixSymbol(SymbolOperator):
 class MinusSign(PrefixSymbol):
     symbol = "-"
 
-    def evaluate(self):
-        rhs, = self._eval(self.rhs)
+    def evaluate(self, **kwargs):
+        rhs, = self._eval(self.rhs, **kwargs)
         return -rhs
 
 
 class PlusSign(PrefixSymbol):
     symbol = "+"
 
-    def evaluate(self):
-        rhs, = self._eval(self.rhs)
+    def evaluate(self, **kwargs):
+        rhs, = self._eval(self.rhs, **kwargs)
         return rhs
 
 class Function(Operator):
@@ -304,8 +312,8 @@ class Function(Operator):
     def __str__(self):
         return "{}({!s})".format(self.fn_s, self.arg)
 
-    def evaluate(self):
-        arg, = self._eval(self.arg)
+    def evaluate(self, **kwargs):
+        arg, = self._eval(self.arg, **kwargs)
         return self.fn(arg)
 
 
@@ -344,7 +352,7 @@ class Constant(ConstVar):
         self.name = name
         self.value = value
 
-    def evaluate(self):
+    def evaluate(self, **kwargs):
         return self.value
 
 
@@ -352,6 +360,15 @@ class Variable(ConstVar):
     def __init__(self, name):
         self.name = name
 
-    def evaluate(self):
-        # TODO     
-        raise RuntimeError("Cannot yet evaluate variable!")
+    def evaluate(self, **kwargs):
+        if self.name in kwargs:
+            # This variable was assigned a value!
+            return kwargs[self.name]
+        else:
+            # No, still symbolic.
+            return self
+
+
+class Unit(Constant):
+    # A special kind of constant.
+    pass
