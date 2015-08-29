@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+try:
+    import readline
+except ImportError:
+    pass
+
 from psciclib import parseexpr
 from psciclib.exceptions import Error
 from psciclib.units import Q_
