@@ -1,4 +1,5 @@
 import math
+import re
 from pyparsing import (Word, oneOf, Literal, CaselessLiteral, Regex,
                        Optional, Suppress, Forward, FollowedBy, Group,
                        OneOrMore, ZeroOrMore,
@@ -14,16 +15,26 @@ identifier = Regex(r'[^\W\d_]\w*')
 # Operands
 integer = Word(nums).setParseAction(lambda t: int(t[0]))
 
-pm = Literal('+') | Literal('-')
-decimal_part = Literal(".") + Optional( Word(nums) )
-exp_part = CaselessLiteral("e") + Optional( pm ) + Word(nums)
-float_ = Word(nums) + ( (Optional(decimal_part) + exp_part) | decimal_part )
-float_.setParseAction(lambda t: float("".join(t)))
+float_ = Regex(r'''[0-9]+           # integer part
+                   (?:
+                       (?:          # optional decimal part followed by e-part
+                           (?: \.[0-9]* )?
+                           [eE]
+                           [-+]?
+                           [0-9]+
+                       )
+                       |
+                       (?: \.[0-9]* )  # mandatory decimal part without e-part
+                   )''',
+               re.VERBOSE)
+float_.setParseAction(lambda t: float(t[0]))
 
 variable = identifier.copy()
 variable.setParseAction(operators.ConstVar.process)
 
-operand = float_ | integer | variable
+number = float_ | integer
+
+operand = number | variable
 
 # Operators
 signop = oneOf("+ -")
