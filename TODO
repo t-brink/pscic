@@ -1,6 +1,8 @@
 In order:
 
-* license, GPLv3 if compatible
+* license [done]
+** some about dialog and "licence" command which outputs all
+   licences of dependencies, too
 
 * support functions
 ** write tests!!!!
