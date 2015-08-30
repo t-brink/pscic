@@ -19,6 +19,7 @@ import sys
 import math
 
 from psciclib.parseexpr import parse
+from psciclib.units import ureg
 
 
 # Helpers.
@@ -359,6 +360,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
         self.assertEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
         self.assertEqual(pe("ln(2 ^ 3)"), math.log(2**3))
+        self.assertEqual(pe("sin(3 * cm / (5 * in))"),
+                         math.sin(3*ureg.centimeter / (5*ureg.inch)))
+        self.assertEqual(pe("sin(3cm / (5in))"),
+                         math.sin(3*ureg.centimeter / (5*ureg.inch)))
 
 class TestFunctions(unittest.TestCase):
     pass # TODO                     
