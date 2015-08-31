@@ -241,6 +241,9 @@ class TestParser(unittest.TestCase):
         s = "10 * 2 / 3 * 4 // 5"
         self.assertEqual(pe(s), eval(s))
 
+    def test_multiply_nosign(self):
+        self.assertEqual(pe("(1 + 1) · 2m"), 4*ureg.meter)
+
     def test_chain_sign(self):
         self.assertEqual(pe("-----1"), -1)
         self.assertEqual(pe("+++++1"), +1)
