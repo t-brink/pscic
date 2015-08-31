@@ -13,9 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 import pyparsing
 
 from .. import parseexpr
@@ -83,7 +86,12 @@ class MainWindow(QtWidgets.QWidget):
 
 
 def main(argv):
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             "logo-path.svg")
+    icon = QtGui.QIcon(icon_path)
+
     app = QtWidgets.QApplication(argv)
+    app.setWindowIcon(icon)
 
     main_window = MainWindow()
     main_window.show()

@@ -374,5 +374,6 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
         self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
 
+
 class TestFunctions(unittest.TestCase):
     pass # TODO                     
