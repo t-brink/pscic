@@ -16,18 +16,22 @@
 import math
 import re
 import pyparsing
-from pyparsing import (ParserElement, Word, oneOf, Literal, CaselessLiteral, Regex,
-                       Optional, Suppress, Forward, FollowedBy, Group,
-                       OneOrMore, ZeroOrMore,
+from pyparsing import (ParserElement, Word, oneOf, Literal, CaselessLiteral,
+                       Regex, Optional, Suppress, Forward, FollowedBy, NotAny,
+                       Group, OneOrMore, ZeroOrMore,
                        nums, alphas, ParseResults)
 ParserElement.enablePackrat() # Significant speedup.
 
 from . import operators
 
 # Definitions. #########################################################
+
+# These are reserved words that cannot be variables, constants, or units.
+keyword = oneOf("to")
+
 # Identifier, must start with unicode letter, can then contain unicode
 # letter, unicode number, or underscore.
-identifier = Regex(r'[^\W\d_]\w*')
+identifier = NotAny( keyword ) + Regex(r'[^\W\d_]\w*')
 
 # Operands
 integer = Word(nums).setParseAction(lambda t: int(t[0]))
@@ -75,8 +79,6 @@ term = operand | ( lpar + expr + rpar )
 #     comma:   easy, nice look     usage as decimal point, thousand separator
 # semicolon:   no other usage      harder to type
 func_term = Forward()
-#func_expr = Group( identifier + lpar + func_term + rpar )
-# TODO: the next line makes everything super-slow!                         
 func_expr = Group( identifier + lpar + expr + rpar )
 func_expr.setParseAction(operators.Function.process)
 func_term <<= ( func_expr | term )

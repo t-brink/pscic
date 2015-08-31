@@ -20,6 +20,8 @@ try:
 except ImportError:
     pass
 
+import pyparsing
+
 from psciclib import parseexpr
 from psciclib.exceptions import Error
 from psciclib.units import Q_
@@ -32,7 +34,7 @@ while True:
         break
     try:
         tree = parseexpr.parse(expr)
-    except Error as e:
+    except (Error, pyparsing.ParseException) as e:
         print(e)
         continue
     print(tree)

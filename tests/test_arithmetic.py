@@ -365,5 +365,11 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("sin(3cm / (5in))"),
                          math.sin(3*ureg.centimeter / (5*ureg.inch)))
 
+
+class TestUnits(unittest.TestCase):
+    def test_conversion(self):
+        self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
+
 class TestFunctions(unittest.TestCase):
     pass # TODO                     
