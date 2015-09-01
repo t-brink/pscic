@@ -13,23 +13,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pint
+import os
+import errno
 
-from . import currency
+import appdirs
 
-# Default init.
-ureg = pint.UnitRegistry()
-ureg.default_format = "~" # print abbreviations by default.
-Q_ = ureg.Quantity
-UndefinedUnitError = pint.UndefinedUnitError
+CACHE_DIR = appdirs.user_cache_dir(appname="pscic",
+                                   appauthor="TobiasBrink",
+                                   opinion=True)
 
-# Add currencies to registry.
-# TODO: put into init function to be called from someplace
-# TODO: error handling
-def init():
-    data = currency.get_exchange_rates()
-    ureg.define("EUR = [currency]")
-    for cur, rate in data["rates"].items():
-        ureg.define("{} = {} * EUR".format(cur, 1/rate))
-init()
 
+def make_paths():
+    """Make sure all paths exist."""
+    try:
+        os.makedirs(CACHE_DIR)
+    except FileExistsError:
+        # Already exists.
+        pass
+
+
+#TODO: put into some sort of init that is called centrally
+make_paths()
