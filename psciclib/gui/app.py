@@ -86,11 +86,11 @@ class MainWindow(QtWidgets.QWidget):
 
 
 def main(argv):
+    app = QtWidgets.QApplication(argv)
+
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "logo-path.svg")
     icon = QtGui.QIcon(icon_path)
-
-    app = QtWidgets.QApplication(argv)
     app.setWindowIcon(icon)
 
     main_window = MainWindow()
