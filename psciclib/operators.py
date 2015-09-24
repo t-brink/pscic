@@ -120,26 +120,38 @@ class InfixSymbol(SymbolOperator):
 class InfixLeftSymbol(InfixSymbol):
     @classmethod
     def process(cls, s, loc, toks):
+        # Sadly, those cannot be stored in the class, as the
+        # subclasses are not yet defined. In the interest of
+        # simplicity just keep them here as a local variable.
+        symbols = {
+            "+": Plus,
+            "-": Minus,
+            "*": Times,
+            "·": Times,
+            "/": Divide,
+            "÷": Divide,
+            "//": IntDivide,
+        }
+        symb_set = set(symbols.keys())
         # reverse, as append is faster than insert(0)
         l = list(reversed(toks[0]))
         while len(l) > 1:
             lhs = l.pop()
             op = l.pop()
-            rhs = l.pop()
+            # Check if operator was omitted (i.e. a multiplication
+            # without sign)
+            if op in symb_set:
+                rhs = l.pop()
+            else:
+                # multiplication operator was omitted.
+                rhs = op
+                op = "*"
             # We will never get, e.g., +- mixed with */ due to the
             # parsing. Therefore it is fine to mix them wildly here
             # without error checking.
-            if op == "+":
-                cls_ = Plus
-            elif op == "-":
-                cls_ = Minus
-            elif op == "*" or op == "·":
-                cls_ = Times
-            elif op == "/" or op == "÷":
-                cls_ = Divide
-            elif op == "//":
-                cls_ = IntDivide
-            else:
+            try:
+                cls_ = symbols[op]
+            except KeyError:
                 raise ValueError("Unknown infix operator: {}".format(op))
             l.append(cls_(lhs, rhs))
         return ParseResults(l)
