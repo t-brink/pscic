@@ -24,33 +24,65 @@ import pyparsing
 from .. import parseexpr
 from ..exceptions import Error
 from ..units import Q_
+from .helpwindow import HelpWindow
+from .aboutwindow import AboutWindow
 
 
-class MainWindow(QtWidgets.QWidget):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.input_field = QtWidgets.QLineEdit()
+        # The main input area. #########################################
+        self.input_area = QtWidgets.QWidget(parent=self)
 
-        self.parsed_field = QtWidgets.QLabel()
+        # Widgets.
+        self.input_field = QtWidgets.QLineEdit(parent=self.input_area)
+
+        self.parsed_field = QtWidgets.QLabel(parent=self.input_area)
         self.parsed_field.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
 
-        self.output_field = QtWidgets.QLabel()
+        self.output_field = QtWidgets.QLabel(parent=self.input_area)
         self.output_field.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
 
         self.input_field.returnPressed.connect(self.calculate)
 
+        # Layout for the widgets.
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.input_field)
         layout.addWidget(self.parsed_field)
         layout.addWidget(self.output_field)
 
-        self.setLayout(layout)
+        # Assign the input area to the main window.
+        self.input_area.setLayout(layout)
+        self.setCentralWidget(self.input_area)
+
+        # Menu bar. ####################################################
+        menu_bar = self.menuBar()
+
+        # Help menu.
+        self.menu_help = menu_bar.addMenu("&Help")
+
+        help_ = self.menu_help.addAction("&Help")
+        help_.triggered.connect(self.show_help)
+
+        about = self.menu_help.addAction("&About")
+        about.triggered.connect(self.show_about)
+
+        # Status bar. ##################################################
+        sb = self.statusBar()
+        l = QtWidgets.QLabel("Welcome to pscic v0.0") # TODO: do something useful here
+        sb.addPermanentWidget(l)
+
+        # Other settings and decorations. ##############################
         self.setWindowTitle("pscic")
+
+        # Prepare sub-windows. #########################################
+        self.__hw = None
+        self.__aw = None
 
     def calculate(self):
         expr = self.input_field.text()
@@ -83,6 +115,16 @@ class MainWindow(QtWidgets.QWidget):
         else:
             val = "{!s}".format(val)
         self.output_field.setText(val)
+
+    def show_help(self):
+        if not self.__hw:
+            self.__hw = HelpWindow()
+        self.__hw.show()
+
+    def show_about(self):
+        if not self.__aw:
+            self.__aw = AboutWindow()
+        self.__aw.show()
 
 
 def main(argv):
