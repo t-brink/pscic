@@ -373,6 +373,10 @@ class TestUnits(unittest.TestCase):
     def test_conversion(self):
         self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
         self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("1/in to 1/cm"), (1 / ureg.inch).to(1/ureg.centimeter))
+
+    def test_null_conversion(self):
+        self.assertEqual(pe("7124 to 1"), 7124)
 
 
 class TestFunctions(unittest.TestCase):

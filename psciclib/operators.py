@@ -100,7 +100,7 @@ class Conversion(Operator):
     def evaluate(self, **kwargs):
         expr, to_unit = self._eval(self.expr, self.to_unit, **kwargs)
         if not isinstance(expr, units.Q_):
-            expr *= units.ureg("1") # dimensionless
+            expr = units.Q_(expr) # dimensionless
         return expr.to(to_unit)
 
 

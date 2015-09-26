@@ -23,6 +23,7 @@ from pyparsing import (ParserElement, Word, oneOf, Literal, CaselessLiteral,
 ParserElement.enablePackrat() # Significant speedup.
 
 from . import operators
+from .units import Q_
 
 # Definitions. #########################################################
 
@@ -124,7 +125,11 @@ unit_expr = Forward()
 single_unit = identifier.copy()
 single_unit.setParseAction(operators.Unit.process)
 
-unit_term = single_unit | ( lpar + unit_expr + rpar )
+literal_one = Literal("1")
+literal_one.setParseAction(lambda _: Q_(1))
+
+# The one allows for example for 1/h = h^-1.
+unit_term = single_unit | literal_one | ( lpar + unit_expr + rpar )
 
 # Exponent
 unit_exp_term = Forward()
