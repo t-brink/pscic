@@ -28,12 +28,19 @@ In order:
 *** pt is pint not point
 *** ...
 
+* use arbitrary precision arithmetic using mpmath if available
+* I think qalculate cheats for sin(2pi) and cos(pi/2): it will special
+  case them and detect that they should be exactly zero.  Perhaps I
+  should mimick that.  They must use some nasty tricks to get
+  stuff like cos(1000*pi + pi/2) and sin(1000*pi) to still give 0.0.
 
 * a ° postfix operator, which converts to radians
 
 * support plots
 
 * GUI
+** Put program name, version number, copyright years, ... into variables so
+   that we do not have to update stuff all over the place.
 
 * support variables (x,y,z only perhaps?)
 ** calculate everything except them

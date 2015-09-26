@@ -291,6 +291,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("1 - 2 * 3"), -5)
         self.assertEqual(pe("1 - 3 / 3"), 0)
         self.assertEqual(pe("1 - 3 // 3"), 0)
+        # Signless multiplication before signed operations.
+        self.assertEqual(pe("2cm / 2cm"), 1)
 
     def test_exponent_and_sign(self):
         self.assertEqual(pe("3 ^ 4"), 3 ** 4)

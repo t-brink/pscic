@@ -103,11 +103,17 @@ sign_expr = FollowedBy(_signop.expr + sign_term) + Group( _signop + sign_term )
 sign_expr.setParseAction(operators.PrefixSymbol.process)
 sign_term <<= ( sign_expr | exp_term )
 
+# Multiplication without sign has precendence so that 2km / 3h means
+# 2/3 km/h.  Multiplication without sign is possible if RHS is a
+# variable/constant/unit.
+signless_mult_expr = Group( sign_term + OneOrMore( variable ) )
+signless_mult_expr.setParseAction(operators.InfixLeftSymbol.process)
+signless_mult_term = ( signless_mult_expr | sign_term )
+
 # Multiplication.
-# Multiplication without sign is possible if RHS is a variable/constant/unit.
-mult_expr = Group( sign_term + OneOrMore( ( multop + sign_term ) | variable ) )
+mult_expr = Group( signless_mult_term + OneOrMore(multop + signless_mult_term) )
 mult_expr.setParseAction(operators.InfixLeftSymbol.process)
-mult_term = ( mult_expr | sign_term )
+mult_term = ( mult_expr | signless_mult_term )
 
 # Addition.
 add_expr = Group( mult_term + OneOrMore( addop + mult_term ) )
