@@ -14,10 +14,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import abc
-import math
 import collections
 
 from pyparsing import ParseResults
+import sympy
 
 from .exceptions import (UnknownFunctionError,
                          UnknownConstantError,
@@ -25,11 +25,60 @@ from .exceptions import (UnknownFunctionError,
 from . import units
 
 
+class Wrapper:
+    """This is the primary API for complete command lines.
+
+    It is a thin wrapper around Expression, Conversion, etc.
+
+    """
+    def __init__(self, cmd):
+        self.cmd = cmd
+
+    def __str__(self):
+        return str(self.cmd)
+
+    def evaluate_exact(self, **kwargs):
+        """Evaluate, not converting explicitly to float."""
+        return self.cmd.evaluate(**kwargs)
+
+    def evaluate(self, **kwargs):
+        """Evaluate human-readable.
+
+        That means, convert to float where not already float or integer.
+
+        """
+        evaluated = self.evaluate_exact(**kwargs)
+        # Strip unit.
+        if isinstance(evaluated, units.Q_):
+            magnitude = evaluated.magnitude
+        else:
+            magnitude = evaluated
+        # Eval to float if necessary.
+        if (not isinstance(magnitude, sympy.numbers.Integer)
+            and not isinstance(magnitude, sympy.numbers.Float)):
+            magnitude = magnitude.evalf()
+        # Add unit if necessary and return.
+        if isinstance(evaluated, units.Q_):
+            return units.Q_(magnitude, evaluated.units)
+        else:
+            return magnitude
+
+
+# Helper classes for primitive literals.
+def process_int(s, loc, toks):
+    return sympy.Integer(toks[0])
+
+
+def process_float(s, loc, toks):
+    return sympy.Float(toks[0])
+
+
 class Operator(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def evaluate(self, **kwargs):
         # The kwargs give values to variables!
+        # TODO: the above is stupid, use sympy's subs() method at the end!!!   
         #
         #TODO for all subclasses: handle symbolic variable by not     
         #actually evaluating!                                         
@@ -58,7 +107,9 @@ class Operator(metaclass=abc.ABCMeta):
         Any keyword arg is interpreted as assigning a value to a variable.
 
         """
-        return tuple((arg.evaluate(**kwargs) if isinstance(arg, Operator) else arg)
+        return tuple((arg.evaluate(**kwargs)
+                      if isinstance(arg, Operator)
+                      else arg)
                      for arg in args)
 
 
@@ -77,6 +128,7 @@ class Expression(Operator):
         return str(self.expr)
 
     def evaluate(self, **kwargs):
+        """Evaluate the expression."""
         retval, = self._eval(self.expr, **kwargs)
         return retval
 
@@ -98,6 +150,7 @@ class Conversion(Operator):
         return "{!s} to {!s}".format(self.expr, self.to_unit)
 
     def evaluate(self, **kwargs):
+        """Evaluate the expression and convert to requested unit."""
         expr, to_unit = self._eval(self.expr, self.to_unit, **kwargs)
         if not isinstance(expr, units.Q_):
             expr = units.Q_(expr) # dimensionless
@@ -194,7 +247,7 @@ class IntDivide(InfixLeftSymbol):
 
     def evaluate(self, **kwargs):
         lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
-        return int(lhs // rhs)
+        return sympy.floor(lhs / rhs)
 
 
 class Exponent(InfixSymbol):
@@ -249,7 +302,7 @@ class Factorial(PostfixSymbol):
 
     def evaluate(self, **kwargs):
         lhs, = self._eval(self.lhs, **kwargs)
-        return math.factorial(lhs)
+        return sympy.factorial(lhs)
 
 
 class PrefixSymbol(SymbolOperator):
@@ -292,65 +345,65 @@ class Function(Operator):
 
     _functions = {
         # Trigonometric functions.
-        "sin": _D("sin", math.sin),
-        "cos": _D("cos", math.cos),
-        "tan": _D("tan", math.tan),
-        "cot": _D("cot", lambda x: 1/math.tan(x)),
-        "sec": _D("sec", lambda x: 1/math.cos(x)),
-        "csc": _D("cosec", lambda x: 1/math.sin(x)),
-        "cosec": _D("cosec", lambda x: 1/math.sin(x)),
+        "sin": _D("sin", sympy.sin),
+        "cos": _D("cos", sympy.cos),
+        "tan": _D("tan", sympy.tan),
+        "cot": _D("cot", sympy.cot),
+        "sec": _D("sec", sympy.sec),
+        "csc": _D("cosec", sympy.csc),
+        "cosec": _D("cosec", sympy.csc),
         # Inverse trigonometric functions.
-        "asin": _D("arcsin", math.asin),
-        "arcsin": _D("arcsin", math.asin),
-        "acos": _D("arccos", math.acos),
-        "arccos": _D("arccos", math.acos),
-        "atan": _D("arctan", math.atan),
-        "arctan": _D("arctan", math.atan),
-        "acot": _D("arccot", lambda x: math.pi/2 - math.atan(x)),
-        "arccot": _D("arccot", lambda x: math.pi/2 - math.atan(x)),
-        "asec": _D("arcsec", lambda x: math.acos(1/x)),
-        "arcsec": _D("arcsec", lambda x: math.acos(1/x)),
-        "acsc": _D("arccosec", lambda x: math.asin(1/x)),
-        "arccsc": _D("arccosec", lambda x: math.asin(1/x)),
-        "acosec": _D("arccosec", lambda x: math.asin(1/x)),
-        "arccosec": _D("arccosec", lambda x: math.asin(1/x)),
+        "asin": _D("arcsin", sympy.asin),
+        "arcsin": _D("arcsin", sympy.asin),
+        "acos": _D("arccos", sympy.acos),
+        "arccos": _D("arccos", sympy.acos),
+        "atan": _D("arctan", sympy.atan),
+        "arctan": _D("arctan", sympy.atan),
+        "acot": _D("arccot", sympy.acot),
+        "arccot": _D("arccot", sympy.acot),
+        "asec": _D("arcsec", sympy.asec),
+        "arcsec": _D("arcsec", sympy.asec),
+        "acsc": _D("arccosec", sympy.acsc),
+        "arccsc": _D("arccosec", sympy.acsc),
+        "acosec": _D("arccosec", sympy.acsc),
+        "arccosec": _D("arccosec", sympy.acsc),
         # Hyperbolic functions.
-        "sinh": _D("sinh", math.sinh),
-        "cosh": _D("cosh", math.cosh),
-        "tanh": _D("tanh", math.tanh),
-        "coth": _D("coth", lambda x: math.cosh(x)/math.sinh(x)),
-        "sech": _D("sech", lambda x: 1/math.cosh(x)),
-        "csch": _D("cosech", lambda x: 1/math.sinh(x)),
-        "cosech": _D("cosech", lambda x: 1/math.sinh(x)),
+        "sinh": _D("sinh", sympy.sinh),
+        "cosh": _D("cosh", sympy.cosh),
+        "tanh": _D("tanh", sympy.tanh),
+        "coth": _D("coth", sympy.coth),
+        "sech": _D("sech", lambda x: 1/sympy.cosh(x)),
+        "csch": _D("cosech", lambda x: 1/sympy.sinh(x)),
+        "cosech": _D("cosech", lambda x: 1/sympy.sinh(x)),
         # Inverse hyperbolic functions.
-        "asinh": _D("arsinh", math.asinh),
-        "arsinh": _D("arsinh", math.asinh),
-        "acosh": _D("arcosh", math.acosh),
-        "arcosh": _D("arcosh", math.acosh),
-        "atanh": _D("artanh", math.atanh),
-        "artanh": _D("artanh", math.atanh),
-        "acoth": _D("arcoth", lambda x: math.atanh(1/x)),
-        "arcoth": _D("arcoth", lambda x: math.atanh(1/x)),
-        "asech": _D("arsech", lambda x: math.acosh(1/x)),
-        "arsech": _D("arsech", lambda x: math.acosh(1/x)),
-        "acsch": _D("arcosech", lambda x: math.asinh(1/x)),
-        "arcsch": _D("arcosech", lambda x: math.asinh(1/x)),
-        "acosech": _D("arcosech", lambda x: math.asinh(1/x)),
-        "arcosech": _D("arcosech", lambda x: math.asinh(1/x)),
+        "asinh": _D("arsinh", sympy.asinh),
+        "arsinh": _D("arsinh", sympy.asinh),
+        "acosh": _D("arcosh", sympy.acosh),
+        "arcosh": _D("arcosh", sympy.acosh),
+        "atanh": _D("artanh", sympy.atanh),
+        "artanh": _D("artanh", sympy.atanh),
+        "acoth": _D("arcoth", sympy.acoth),
+        "arcoth": _D("arcoth", sympy.acoth),
+        "asech": _D("arsech", lambda x: sympy.acosh(1/x)),
+        "arsech": _D("arsech", lambda x: sympy.acosh(1/x)),
+        "acsch": _D("arcosech", lambda x: sympy.asinh(1/x)),
+        "arcsch": _D("arcosech", lambda x: sympy.asinh(1/x)),
+        "acosech": _D("arcosech", lambda x: sympy.asinh(1/x)),
+        "arcosech": _D("arcosech", lambda x: sympy.asinh(1/x)),
         # e-function related.
-        "exp": _D("exp", math.exp),
-        "ln": _D("log", math.log),
-        "log": _D("log", math.log),
-        "log10": _D("log10", math.log10),
-        "log2": _D("log2", math.log2),
+        "exp": _D("exp", sympy.exp),
+        "ln": _D("log", sympy.log),
+        "log": _D("log", sympy.log),
+        "log10": _D("log10", lambda x: sympy.log(x, 10)),
+        "log2": _D("log2", lambda x: sympy.log(x, 2)),
         # Square root.
-        "sqrt": _D("√", math.sqrt),
-        "√": _D("√", math.sqrt),
+        "sqrt": _D("√", sympy.sqrt),
+        "√": _D("√", sympy.sqrt),
         # Absolute.
         "abs": _D("abs", abs),
         # Error function.
-        "erf": _D("erf", math.erf),
-        "erfc": _D("erfc", math.erfc),
+        "erf": _D("erf", sympy.erf),
+        "erfc": _D("erfc", sympy.erfc),
     }
 
     @classmethod
@@ -377,60 +430,43 @@ class Function(Operator):
         return self.fn(arg)
 
 
-class ConstVar(Operator):
-    # Base class for constants and variables.
+class Constant(Operator):
+    # Constants and variables (which are nothing but constants here in
+    # terms of implementation).
 
-    _D = collections.namedtuple("_D", ["canonical_name", "constvar", "value"])
+    _D = collections.namedtuple("_D", ["canonical_name", "value"])
 
     _constants_and_variables = {
-        "e": _D("e", "const", math.e),
-        "i": _D("i", "const", 1j),
-        "pi": _D("π", "const", math.pi),
-        "π": _D("π", "const", math.pi),
+        "e": _D("e", sympy.E),
+        "i": _D("i", sympy.I),
+        "pi": _D("π", sympy.pi),
+        "π": _D("π", sympy.pi),
 
         # Variables.
-        "x": _D("x", "var", None),
+        "x": _D("x", sympy.symbols("x")),
     }
 
     @classmethod
     def process(cls, s, loc, toks):
         try:
-            name, type_, value = cls._constants_and_variables[toks[0]]
+            name, value = cls._constants_and_variables[toks[0]]
         except KeyError:
             # Perhaps it is a unit known by pint?
             try:
                 return Unit.process(s, loc, toks)
             except UnknownUnitError:
                 raise UnknownConstantError(toks[0])
-        if type_ == "const":
-            return ParseResults([Constant(name, value)])
-        elif type_ == "var":
-            return ParseResults([Variable(name)])
+        return cls(name, value)
 
-    def __str__(self):
-        return str(self.name)
-
-
-class Constant(ConstVar):
     def __init__(self, name, value):
         self.name = name
         self.value = value
 
+    def __str__(self):
+        return str(self.name)
+
     def evaluate(self, **kwargs):
         return self.value
-
-
-class Variable(ConstVar):
-    def __init__(self, name):
-        self.name = name
-
-    def evaluate(self, **kwargs):
-        if self.name in kwargs:
-            # This variable was assigned a value!
-            return kwargs[self.name]
-        else:
-            # No, still symbolic.
-            return self
 
 
 class Unit(Constant):

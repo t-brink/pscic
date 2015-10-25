@@ -9,16 +9,25 @@ In order:
 ** also "negative" tests, where we expect failure
 ** handle complex numbers! i.e. support them but go to float as soon as possible!
 
+* SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
+  Just need to get it to play nice with pint
+** mostly DONE
+** need to control output (i.e. exact vs float; float precision; ...)
+** the output should try to be exact if possible. this works for simple cases,
+   i.e. 42 -> 42; 1/2 -> 0.5
+   but fails for slightly more complex stuff like
+   17*x -> 17.0*x   which should still be 17*x
+   2/3 * x -> 0.6666666667 * x   which works
+** remove trailing zeros from floats on output
+
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ... [e,pi,i implemented]
 ** if a constant follows a number or ), the multiplication sign may be left out;
    in contrast to qalculate the sign is needed if the constant is in front of
-   the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined)
-** the previous point works now but too broadly, the excluded things from above
-   are not excluded, yet! It is still 1 1 1 = 1*1*1.
+   the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined) [done]
 ** write tests!
 
-* support units
+* support units [should work in general, see below]
 ** temperature (non-K) may be harder to get right in a nice way
    (semantics are not always clear).
 ** Parse multiplied units like Js = J*s; this may be ambiguous! Be careful!
@@ -28,12 +37,6 @@ In order:
 *** pt is pint not point
 *** ...
 
-* use arbitrary precision arithmetic using mpmath if available
-* I think qalculate cheats for sin(2pi) and cos(pi/2): it will special
-  case them and detect that they should be exactly zero.  Perhaps I
-  should mimick that.  They must use some nasty tricks to get
-  stuff like cos(1000*pi + pi/2) and sin(1000*pi) to still give 0.0.
-
 * a ° postfix operator, which converts to radians
 
 * support plots
@@ -42,13 +45,13 @@ In order:
 ** Put program name, version number, copyright years, ... into variables so
    that we do not have to update stuff all over the place.
 
-* support variables (x,y,z only perhaps?)
-** calculate everything except them
+* support variables (x,y,z only perhaps?) [sympy does all the work]
+** calculate everything except them [sympy]
 ** really useful when introducing the = sign, to solve a Dreisatz etc.
-** should probably use sympy
+*** needs to auto-solve for equalities (and inequalities)
+** auto-plot?
 
-* other fancy stuff?
-** sympy for symbolic calculations?
+* matrices/vectors (numpy)
 
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
@@ -58,5 +61,3 @@ In order:
 
 * hex/oct/bin input/output.  support floats.
 ** support roman numerals somehow
-
-* currency conversion

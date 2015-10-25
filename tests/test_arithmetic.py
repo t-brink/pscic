@@ -18,6 +18,8 @@ import random
 import sys
 import math
 
+import sympy
+
 from psciclib.parseexpr import parse
 from psciclib.units import ureg
 
@@ -112,8 +114,8 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_exponent_float(self):
         b = rand(-500.0, 500.0)
         e = rand(-10.0, 10.0)
-        self.assertEqual(pe("({}) ** ({})", b, e), b ** e)
-        self.assertEqual(pe("({}) ^ ({})", b, e), b ** e)
+        self.assertAlmostEqual(pe("({}) ** ({})", b, e), b ** e)
+        self.assertAlmostEqual(pe("({}) ^ ({})", b, e), b ** e)
 
     def test_factorial(self):
         self.assertEqual(pe("0!"), 1)
@@ -121,32 +123,34 @@ class TestStandaloneExpressions(unittest.TestCase):
         self.assertEqual(pe("2!"), 2)
         a = random.randint(3, 100)
         self.assertEqual(pe("{}!", a), math.factorial(a))
+        # Weirdly, there are factorials for rational numbers.
+        self.assertAlmostEqual(pe("(1/2)!"), 0.5*math.sqrt(math.pi))
 
 
 class TestResultType(unittest.TestCase):
 
     def test_int(self):
-        self.assertIsInstance(pe("1"), int)
-        self.assertIsInstance(pe("-1"), int)
-        self.assertIsInstance(pe("+1"), int)
-        self.assertIsInstance(pe("001"), int)
+        self.assertIsInstance(pe("1"), sympy.Integer)
+        self.assertIsInstance(pe("-1"), sympy.Integer)
+        self.assertIsInstance(pe("+1"), sympy.Integer)
+        self.assertIsInstance(pe("001"), sympy.Integer)
         self.assertEqual(pe("1"), 1)
         self.assertEqual(pe("-1"), -1)
         self.assertEqual(pe("+1"), 1)
         self.assertEqual(pe("001"), 1)
 
     def test_float(self):
-        self.assertIsInstance(pe("1."), float)
-        self.assertIsInstance(pe("01."), float)
-        self.assertIsInstance(pe("1.0"), float)
-        self.assertIsInstance(pe("1e4"), float)
-        self.assertIsInstance(pe("1e+4"), float)
-        self.assertIsInstance(pe("1e-4"), float)
-        self.assertIsInstance(pe("1.e4"), float)
-        self.assertIsInstance(pe("1.e+4"), float)
-        self.assertIsInstance(pe("1.e-4"), float)
-        self.assertIsInstance(pe("1.0e+4"), float)
-        self.assertIsInstance(pe("1.0e-4"), float)
+        self.assertIsInstance(pe("1."), sympy.Float)
+        self.assertIsInstance(pe("01."), sympy.Float)
+        self.assertIsInstance(pe("1.0"), sympy.Float)
+        self.assertIsInstance(pe("1e4"), sympy.Float)
+        self.assertIsInstance(pe("1e+4"), sympy.Float)
+        self.assertIsInstance(pe("1e-4"), sympy.Float)
+        self.assertIsInstance(pe("1.e4"), sympy.Float)
+        self.assertIsInstance(pe("1.e+4"), sympy.Float)
+        self.assertIsInstance(pe("1.e-4"), sympy.Float)
+        self.assertIsInstance(pe("1.0e+4"), sympy.Float)
+        self.assertIsInstance(pe("1.0e-4"), sympy.Float)
         self.assertEqual(pe("1."), 1.0)
         self.assertEqual(pe("01."), 1.0)
         self.assertEqual(pe("1.0"), 1.0)
@@ -158,17 +162,17 @@ class TestResultType(unittest.TestCase):
         self.assertEqual(pe("1.e-4"), 1e-4)
         self.assertEqual(pe("1.0e+4"), 1e4)
         self.assertEqual(pe("1.0e-4"), 1e-4)
-        self.assertIsInstance(pe("-1."), float)
-        self.assertIsInstance(pe("-01."), float)
-        self.assertIsInstance(pe("-1.0"), float)
-        self.assertIsInstance(pe("-1e4"), float)
-        self.assertIsInstance(pe("-1e+4"), float)
-        self.assertIsInstance(pe("-1e-4"), float)
-        self.assertIsInstance(pe("-1.e4"), float)
-        self.assertIsInstance(pe("-1.e+4"), float)
-        self.assertIsInstance(pe("-1.e-4"), float)
-        self.assertIsInstance(pe("-1.0e+4"), float)
-        self.assertIsInstance(pe("-1.0e-4"), float)
+        self.assertIsInstance(pe("-1."), sympy.Float)
+        self.assertIsInstance(pe("-01."), sympy.Float)
+        self.assertIsInstance(pe("-1.0"), sympy.Float)
+        self.assertIsInstance(pe("-1e4"), sympy.Float)
+        self.assertIsInstance(pe("-1e+4"), sympy.Float)
+        self.assertIsInstance(pe("-1e-4"), sympy.Float)
+        self.assertIsInstance(pe("-1.e4"), sympy.Float)
+        self.assertIsInstance(pe("-1.e+4"), sympy.Float)
+        self.assertIsInstance(pe("-1.e-4"), sympy.Float)
+        self.assertIsInstance(pe("-1.0e+4"), sympy.Float)
+        self.assertIsInstance(pe("-1.0e-4"), sympy.Float)
         self.assertEqual(pe("-1."), -1.0)
         self.assertEqual(pe("-01."), -1.0)
         self.assertEqual(pe("-1.0"), -1.0)
@@ -182,33 +186,22 @@ class TestResultType(unittest.TestCase):
         self.assertEqual(pe("-1.0e-4"), -1e-4)
 
     def test_operations(self):
-        self.assertIsInstance(pe("+1"), int)
-        self.assertIsInstance(pe("-1"), int)
-        self.assertIsInstance(pe("1 + 1"), int)
-        self.assertIsInstance(pe("1 - 1"), int)
-        self.assertIsInstance(pe("1 * 1"), int)
-        self.assertIsInstance(pe("1 // 1"), int)
-        self.assertIsInstance(pe("1 / 1"), float)
-        self.assertIsInstance(pe("1 ^ 1"), int)
-        self.assertIsInstance(pe("1 ** 1"), int)
-        self.assertIsInstance(pe("5!"), int)
-        self.assertIsInstance(pe("+1."), float)
-        self.assertIsInstance(pe("-1."), float)
-        self.assertIsInstance(pe("1. + 1"), float)
-        self.assertIsInstance(pe("1 + 1."), float)
-        self.assertIsInstance(pe("1. - 1"), float)
-        self.assertIsInstance(pe("1 - 1."), float)
-        self.assertIsInstance(pe("1. * 1."), float)
-        self.assertIsInstance(pe("1 * 1."), float)
-        self.assertIsInstance(pe("1. // 1"), int)
-        self.assertIsInstance(pe("1 // 1."), int)
-        self.assertIsInstance(pe("1. / 1"), float)
-        self.assertIsInstance(pe("1 / 1."), float)
-        self.assertIsInstance(pe("1. ^ 1"), float)
-        self.assertIsInstance(pe("1 ^ 1."), float)
-        self.assertIsInstance(pe("1. ** 1"), float)
-        self.assertIsInstance(pe("1 ** 1."), float)
-        self.assertIsInstance(pe("5.!"), int)
+        # Simply ensure that everything which should be integer, is.
+        # Do not bother testing for float.
+        self.assertIsInstance(pe("+1"), sympy.Integer)
+        self.assertIsInstance(pe("-1"), sympy.Integer)
+        self.assertIsInstance(pe("1 + 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 - 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 * 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 // 1"), sympy.Integer)
+        # not sure if we want to rely on this next one or if it
+        # doesn't matter?
+        self.assertIsInstance(pe("1 / 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 ^ 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 ** 1"), sympy.Integer)
+        self.assertIsInstance(pe("5!"), sympy.Integer)
+        self.assertIsInstance(pe("1. // 1"), sympy.Integer)
+        self.assertIsInstance(pe("1 // 1."), sympy.Integer)
 
 
 class TestParser(unittest.TestCase):
@@ -341,34 +334,43 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("-(1+1)"), -2)
 
     def test_nested_functions(self):
-        self.assertEqual(pe("cos(sin(1))"), math.cos(math.sin(1.0)))
+        self.assertAlmostEqual(pe("cos(sin(1))"), math.cos(math.sin(1.0)))
 
     def test_added_functions(self):
-        self.assertEqual(pe("cos(1) + sin(1)"), math.cos(1.0) + math.sin(1.0))
+        self.assertAlmostEqual(pe("cos(1) + sin(1)"),
+                               math.cos(1.0) + math.sin(1.0))
 
     def test_multiplied_functions(self):
-        self.assertEqual(pe("cos(1) * sin(1)"), math.cos(1.0) * math.sin(1.0))
+        self.assertAlmostEqual(pe("cos(1) * sin(1)"),
+                               math.cos(1.0) * math.sin(1.0))
 
     def test_function_combinations(self):
-        self.assertEqual(pe("exp(2.3) ^ log(2.3)"), math.exp(2.3) ** math.log(2.3))
-        self.assertEqual(pe("exp(2.3) ** log(2.3)"), math.exp(2.3) ** math.log(2.3))
-        self.assertEqual(pe("-log(2.3)"), -math.log(2.3))
-        self.assertEqual(pe("exp(2.3) + log(2.3)"), math.exp(2.3) + math.log(2.3))
-        self.assertEqual(pe("exp(2.3) - log(2.3)"), math.exp(2.3) - math.log(2.3))
-        self.assertEqual(pe("exp(2.3) * log(2.3)"), math.exp(2.3) * math.log(2.3))
-        self.assertEqual(pe("exp(2.3) / log(2.3)"), math.exp(2.3) / math.log(2.3))
-        self.assertEqual(pe("exp(2.3) // log(2.3)"),
+        self.assertAlmostEqual(pe("exp(2.3) ^ log(2.3)"),
+                               math.exp(2.3) ** math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) ** log(2.3)"),
+                               math.exp(2.3) ** math.log(2.3))
+        self.assertAlmostEqual(pe("-log(2.3)"), -math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) + log(2.3)"),
+                               math.exp(2.3) + math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) - log(2.3)"),
+                               math.exp(2.3) - math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) * log(2.3)"),
+                               math.exp(2.3) * math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) / log(2.3)"),
+                               math.exp(2.3) / math.log(2.3))
+        self.assertAlmostEqual(pe("exp(2.3) // log(2.3)"),
                          int(math.exp(2.3) // math.log(2.3)))
-        self.assertEqual(pe("log(exp(4))!"), math.factorial(math.log(math.exp(4))))
+        self.assertAlmostEqual(pe("log(exp(4))!"),
+                               math.factorial(math.log(math.exp(4))))
 
     def test_term_in_function(self):
-        self.assertEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
-        self.assertEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
-        self.assertEqual(pe("ln(2 ^ 3)"), math.log(2**3))
-        self.assertEqual(pe("sin(3 * cm / (5 * in))"),
-                         math.sin(3*ureg.centimeter / (5*ureg.inch)))
-        self.assertEqual(pe("sin(3cm / (5in))"),
-                         math.sin(3*ureg.centimeter / (5*ureg.inch)))
+        self.assertAlmostEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
+        self.assertAlmostEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
+        self.assertAlmostEqual(pe("ln(2 ^ 3)"), math.log(2**3))
+        self.assertAlmostEqual(pe("sin(3 * cm / (5 * in))"),
+                               math.sin(3*ureg.centimeter / (5*ureg.inch)))
+        self.assertAlmostEqual(pe("sin(3cm / (5in))"),
+                               math.sin(3*ureg.centimeter / (5*ureg.inch)))
 
 
 class TestUnits(unittest.TestCase):
@@ -382,4 +384,12 @@ class TestUnits(unittest.TestCase):
 
 
 class TestFunctions(unittest.TestCase):
-    pass # TODO                     
+    def test_trig(self):
+        self.assertEqual(pe("sin(0)"), 0)
+        self.assertEqual(pe("sin(pi/2)"), 1)
+        self.assertEqual(pe("sin(pi)"), 0)
+        self.assertEqual(pe("sin(3pi/2)"), -1)
+        self.assertEqual(pe("sin(2pi)"), 0)
+        # .....   
+
+    # ....   

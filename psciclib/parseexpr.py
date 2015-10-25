@@ -35,7 +35,7 @@ keyword = oneOf("to")
 identifier = NotAny( keyword ) + Regex(r'[^\W\d_]\w*')
 
 # Operands
-integer = Word(nums).setParseAction(lambda t: int(t[0]))
+integer = Word(nums).setParseAction(operators.process_int)
 
 float_ = Regex(r'''[0-9]+           # integer part
                    (?:
@@ -49,10 +49,10 @@ float_ = Regex(r'''[0-9]+           # integer part
                        (?: \.[0-9]* )  # mandatory decimal part without e-part
                    )''',
                re.VERBOSE)
-float_.setParseAction(lambda t: float(t[0]))
+float_.setParseAction(operators.process_float)
 
 variable = identifier.copy()
-variable.setParseAction(operators.ConstVar.process)
+variable.setParseAction(operators.Constant.process)
 
 number = float_ | integer
 
@@ -171,4 +171,4 @@ cmdln = conversion_cmd | expr
 
 # Parse it.
 def parse(string):
-    return cmdln.parseString(string, parseAll=True)[0]
+    return operators.Wrapper(cmdln.parseString(string, parseAll=True)[0])
