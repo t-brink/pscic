@@ -168,7 +168,11 @@ to_token = Literal("to") + unit_expr
 conversion_cmd = expr + to_token
 conversion_cmd.setParseAction(operators.Conversion.process)
 
-cmdln = conversion_cmd | expr
+equals_token = Literal("=")
+equality = expr + equals_token + expr
+equality.setParseAction(operators.Equality.process)
+
+cmdln = conversion_cmd | equality | expr
 
 
 # Parse it.

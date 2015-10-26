@@ -24,6 +24,10 @@ In order:
    ourselves! [DONE]
 *** only unit to the power of symbolic does not work, yet, but probably
     should (no priority).
+*** solving equalities with units is not supported, yet. This will probably
+    need a temporary conversion to sympy units or something. Alternatively
+    every unit will be converted to a symbol and re-translated in the end.
+**** Also missing: unit conversion for solutions.
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ... [e,pi,i implemented]

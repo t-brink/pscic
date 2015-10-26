@@ -25,6 +25,9 @@ from .exceptions import (UnknownFunctionError,
 from . import units
 
 
+_X = sympy.symbols("x")
+
+
 class Wrapper:
     """This is the primary API for complete command lines.
 
@@ -55,7 +58,8 @@ class Wrapper:
             magnitude = evaluated
         # Eval to float if necessary.
         if (not isinstance(magnitude, sympy.numbers.Integer)
-            and not isinstance(magnitude, sympy.numbers.Float)):
+            and not isinstance(magnitude, sympy.numbers.Float)
+            and not isinstance(magnitude, str)):
             magnitude = magnitude.evalf()
         # Add unit if necessary and return.
         if isinstance(evaluated, units.Q_):
@@ -155,6 +159,64 @@ class Conversion(Operator):
         if not isinstance(expr, units.Q_):
             expr = units.Q_(expr) # dimensionless
         return expr.to(to_unit)
+
+
+class Equality(Operator):
+    """<lhs> = <rhs>, autosolved if possible."""
+
+    class _Solutions:
+        # Helper class for pretty-printing.
+        def __init__(self, x, solutions):
+            self.x = x
+            self.solutions = solutions
+
+        def __str__(self):
+            if len(self.solutions) == 1:
+                return "{} = {}".format(self.x, self.solutions[0])
+            else:
+                return "{} = [{}]".format(self.x,
+                                          "; ".join(str(i)
+                                                   for i in self.solutions))
+
+        def evalf(self, *args, **kwargs):
+            return self.__class__(self.x, [i.evalf(*args, **kwargs)
+                                           for i in self.solutions])
+
+    def __init__(self, lhs, rhs):
+        self.lhs = lhs
+        self.rhs = rhs
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        if len(toks) != 3:
+            raise ValueError("BUG: Something went wrong with the parsing.")
+        # [<lhs>, "=", <rhs>]
+        return cls(toks[0], toks[2])
+
+    def __str__(self):
+        return "{!s} = {!s}".format(self.lhs, self.rhs)
+
+    def evaluate(self, **kwargs):
+        """Try to solve."""
+        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+        true, false = sympy.S.true, sympy.S.false
+        eq = sympy.Eq(lhs, rhs)
+        # Check if we can already say the expression is true or false.
+        if eq is true or eq is false:
+            return str(eq)
+        # Try harder.
+        eq = eq.simplify()
+        if eq is true or eq is false:
+            return str(eq)
+        # Try to solve for x.
+        try:
+            solutions = sympy.solve(eq, _X)
+        except NotImplementedError:
+            solutions = []
+        if not solutions:
+            return eq
+        else:
+            return self._Solutions(_X, solutions)
 
 
 class SymbolOperator(Operator):
@@ -471,7 +533,7 @@ class Constant(Operator):
         "π": _D("π", sympy.pi),
 
         # Variables.
-        "x": _D("x", sympy.symbols("x")),
+        "x": _D("x", _X),
     }
 
     @classmethod
