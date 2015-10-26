@@ -182,7 +182,7 @@ class Conversion(Operator):
 class Equality(Operator):
     """<lhs> = <rhs>, autosolved if possible."""
 
-    class _Solutions:
+    class Solutions:
         # Helper class for pretty-printing.
         def __init__(self, x, solutions):
             self.x = x
@@ -238,7 +238,7 @@ class Equality(Operator):
         if not solutions:
             return eq
         else:
-            return self._Solutions(_X, solutions)
+            return self.Solutions(_X, solutions)
 
 
 class SymbolOperator(Operator):

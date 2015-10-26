@@ -22,10 +22,16 @@ from PyQt5 import QtGui
 import pyparsing
 
 from .. import parseexpr
+from .. import operators
 from ..exceptions import Error
 from ..units import Q_
 from .helpwindow import HelpWindow
 from .aboutwindow import AboutWindow
+
+
+# TODO:            
+# * Put parts of the main window into separate custom widgets to reduce
+#   clutter
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -43,18 +49,61 @@ class MainWindow(QtWidgets.QMainWindow):
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
 
+        self.mode_field = QtWidgets.QLabel(parent=self.input_area)
+
+        below_entry_layout = QtWidgets.QHBoxLayout()
+        below_entry_layout.addWidget(self.parsed_field)
+        self.parsed_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                        QtWidgets.QSizePolicy.Fixed)
+        below_entry_layout.addWidget(self.mode_field)
+        self.mode_field.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                      QtWidgets.QSizePolicy.Fixed)
+
         self.output_field = QtWidgets.QLabel(parent=self.input_area)
         self.output_field.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
+        self.output_field.setAlignment(Qt.AlignRight | Qt.AlignTop)
 
         self.input_field.returnPressed.connect(self.calculate)
+
+        # Output controls.
+        self.output_label = QtWidgets.QLabel("Output:")
+        self.exact_or_float = QtWidgets.QToolButton(parent=self.input_area)
+        self.exact_or_float.setText("Exact")
+        self.exact_or_float.setCheckable(True)
+        self.exact_or_float.setChecked(False)
+        self.exact_or_float.toggled.connect(self.calculate)
+        self.exact_or_float.toggled.connect(self.update_mode_field)
+        # TODO: do not re-calculate, but change the output only     
+        #       this needs support in the lower layers              
+
+        self.float_display = QtWidgets.QComboBox(parent=self.input_area)
+        self.float_display.addItem("Normal", "norm")
+        self.float_display.addItem("Engineering", "eng")
+        self.float_display.addItem("Scientific", "sci")
+        self.float_display.addItem("Simple", "simp")
+        self.float_display.currentIndexChanged.connect(self.calculate)
+        # TODO: do not re-calculate, but change the output only     
+        #       this needs support in the lower layers              
+
+        output_ctrls_layout = QtWidgets.QHBoxLayout()
+        output_ctrls_layout.addWidget(self.output_label)
+        self.output_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                        QtWidgets.QSizePolicy.Fixed)
+        output_ctrls_layout.addWidget(self.exact_or_float)
+        output_ctrls_layout.addWidget(self.float_display)
 
         # Layout for the widgets.
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.input_field)
-        layout.addWidget(self.parsed_field)
+        self.input_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                       QtWidgets.QSizePolicy.Fixed)
+        layout.addLayout(below_entry_layout)
         layout.addWidget(self.output_field)
+        self.output_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                        QtWidgets.QSizePolicy.Expanding)
+        layout.addLayout(output_ctrls_layout)
 
         # Assign the input area to the main window.
         self.input_area.setLayout(layout)
@@ -84,9 +133,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__hw = None
         self.__aw = None
 
+        # Init mode display. ###########################################
+        self.update_mode_field()
+
     def calculate(self):
         expr = self.input_field.text()
-        self.input_field.setText("")
 
         # Parse.
         try:
@@ -102,7 +153,10 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         # Evaluate.
         try:
-            val = tree.evaluate()
+            if self.exact_or_float.isChecked():
+                val = tree.evaluate_simplify()
+            else:
+                val = tree.evaluate()
         except ValueError as e:
             self.output_field.setText(
                 r'<span style="color:red;">ValueError: {!s}</span>'.format(e)
@@ -111,10 +165,34 @@ class MainWindow(QtWidgets.QMainWindow):
         # Output.
         if isinstance(val, Q_):
             # pretty-print units.
-            val = "{:H~}".format(val)
+            val = "= {:H~}".format(val)
+        elif isinstance(val, operators.Equality.Solutions):
+            val = "<br>".join(
+                "<i>{!s}</i> = {}".format(
+                    val.x,
+                    ("{:H~}".format(sol)
+                     if isinstance(sol, Q_)
+                     else "{!s}".format(sol))
+                )
+                for sol in val.solutions)
+        elif isinstance(val, bool):
+            val = str(val)
         else:
-            val = "{!s}".format(val)
-        self.output_field.setText(val)
+            val = "= {!s}".format(val)
+        self.output_field.setText(r'<span style="font-size: x-large;">'
+                                  + val
+                                  + r'</span>')
+
+    def update_mode_field(self):
+        self.mode_field.setText(
+            r'<span style="font-size: small;">'
+            + "{}{}"
+            "".format(
+                ("EXACT " if self.exact_or_float.isChecked() else ""),
+                "RAD",
+            )
+            + r'</span>'
+        )
 
     def show_help(self):
         if not self.__hw:
