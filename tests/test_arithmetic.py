@@ -80,20 +80,20 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_multiply_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertEqual(pe("{} · {}", a, b), a * b)
-        self.assertEqual(pe("{} * {}", a, b), a * b)
+        self.assertAlmostEqual(pe("{} · {}", a, b), a * b)
+        self.assertAlmostEqual(pe("{} * {}", a, b), a * b)
 
     def test_divide_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
         b = random.randint(-sys.maxsize, sys.maxsize)
-        self.assertEqual(pe("{} ÷ {}", a, b), a / b)
-        self.assertEqual(pe("{} / {}", a, b), a / b)
+        self.assertAlmostEqual(pe("{} ÷ {}", a, b), a / b)
+        self.assertAlmostEqual(pe("{} / {}", a, b), a / b)
 
     def test_divide_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertEqual(pe("{} ÷ {}", a, b), a / b)
-        self.assertEqual(pe("{} / {}", a, b), a / b)
+        self.assertAlmostEqual(pe("{} ÷ {}", a, b), a / b)
+        self.assertAlmostEqual(pe("{} / {}", a, b), a / b)
 
     def test_intdivide_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -372,6 +372,20 @@ class TestParser(unittest.TestCase):
         self.assertAlmostEqual(pe("sin(3cm / (5in))"),
                                math.sin(3*ureg.centimeter / (5*ureg.inch)))
 
+    def test_constant_exponents(self):
+        self.assertEqual(pe("1m^2"), 1*ureg.meter**2)
+        self.assertEqual(pe("1*m^2"), 1*ureg.meter**2)
+        self.assertEqual(pe("1m**2"), 1*ureg.meter**2)
+        self.assertEqual(pe("1*m**2"), 1*ureg.meter**2)
+        self.assertEqual(pe("1*m*m"), 1*ureg.meter**2)
+        self.assertEqual(pe("1 m*m"), 1*ureg.meter**2)
+        self.assertEqual(pe("1*m m"), 1*ureg.meter**2)
+        self.assertEqual(pe("1 m m"), 1*ureg.meter**2)
+        self.assertEqual(pe("1 m^-1"), 1/ureg.meter)
+        self.assertEqual(pe("1*m^-1"), 1/ureg.meter)
+        self.assertEqual(pe("1 m^-2"), ureg.meter**(-2))
+        self.assertEqual(pe("1*m^-2"), ureg.meter**(-2))
+
 
 class TestUnits(unittest.TestCase):
     def test_conversion(self):
@@ -381,6 +395,12 @@ class TestUnits(unittest.TestCase):
 
     def test_null_conversion(self):
         self.assertEqual(pe("7124 to 1"), 7124)
+
+    def test_exponents(self):
+        self.assertEqual(pe("(1*m^2)"), 1*ureg.meter**2)
+        self.assertEqual(pe("sqrt(1*m^2)"), 1*ureg.meter)
+        # Weird, but must be legal.
+        self.assertEqual(pe("1m^pi"), 1*ureg.meter**math.pi)
 
 
 class TestFunctions(unittest.TestCase):

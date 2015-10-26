@@ -19,6 +19,11 @@ In order:
    17*x -> 17.0*x   which should still be 17*x
    2/3 * x -> 0.6666666667 * x   which works
 ** remove trailing zeros from floats on output
+** DOES NOT YET PLAY NICE WITH UNITS! sympy unit support is not up to
+   scratch with regard to pint, so we need to hammer those together
+   ourselves! [DONE]
+*** only unit to the power of symbolic does not work, yet, but probably
+    should (no priority).
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ... [e,pi,i implemented]

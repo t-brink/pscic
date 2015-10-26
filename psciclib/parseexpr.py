@@ -106,7 +106,9 @@ sign_term <<= ( sign_expr | exp_term )
 # Multiplication without sign has precendence so that 2km / 3h means
 # 2/3 km/h.  Multiplication without sign is possible if RHS is a
 # variable/constant/unit.
-signless_mult_expr = Group( sign_term + OneOrMore( variable ) )
+sm_exp_expr = Group( variable + expop + ZeroOrMore(signop) + exp_term )
+sm_exp_expr.setParseAction(operators.Exponent.process)
+signless_mult_expr = Group( sign_term + OneOrMore( sm_exp_expr | variable ) )
 signless_mult_expr.setParseAction(operators.InfixLeftSymbol.process)
 signless_mult_term = ( signless_mult_expr | sign_term )
 

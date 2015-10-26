@@ -274,7 +274,22 @@ class Exponent(InfixSymbol):
 
     def evaluate(self, **kwargs):
         lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
-        return lhs ** rhs
+        # Exponentiation of units does not play nice with pint/sympy,
+        # so fix that.
+        # TODO: the exponent could be a sympy symbol, that is not yet
+        # supported     
+        if isinstance(lhs, units.Q_):
+            # Try to make rhs into a float.
+            try:
+                unit_exponent = float(rhs)
+            except TypeError:
+                raise ValueError("Exponents for units must be real numbers, "
+                                 "not {}.".format(type(rhs)))
+            m = lhs.magnitude
+            u = lhs.units
+            return units.Q_(m ** rhs, u ** unit_exponent)
+        else:
+            return lhs ** rhs
 
 
 class PostfixSymbol(SymbolOperator):
@@ -341,93 +356,106 @@ class PlusSign(PrefixSymbol):
 
 class Function(Operator):
 
-    _D = collections.namedtuple("_D", ["canonical_name", "fn"])
+    # If the function can handle units other than dimensionless,
+    # unit_support should be a function to be applied to the unit,
+    # otherwise False.  If the function already handles units, use True.
+    _D = collections.namedtuple("_D", ["canonical_name", "fn", "unit_support"])
 
     _functions = {
         # Trigonometric functions.
-        "sin": _D("sin", sympy.sin),
-        "cos": _D("cos", sympy.cos),
-        "tan": _D("tan", sympy.tan),
-        "cot": _D("cot", sympy.cot),
-        "sec": _D("sec", sympy.sec),
-        "csc": _D("cosec", sympy.csc),
-        "cosec": _D("cosec", sympy.csc),
+        "sin": _D("sin", sympy.sin, False),
+        "cos": _D("cos", sympy.cos, False),
+        "tan": _D("tan", sympy.tan, False),
+        "cot": _D("cot", sympy.cot, False),
+        "sec": _D("sec", sympy.sec, False),
+        "csc": _D("cosec", sympy.csc, False),
+        "cosec": _D("cosec", sympy.csc, False),
         # Inverse trigonometric functions.
-        "asin": _D("arcsin", sympy.asin),
-        "arcsin": _D("arcsin", sympy.asin),
-        "acos": _D("arccos", sympy.acos),
-        "arccos": _D("arccos", sympy.acos),
-        "atan": _D("arctan", sympy.atan),
-        "arctan": _D("arctan", sympy.atan),
-        "acot": _D("arccot", sympy.acot),
-        "arccot": _D("arccot", sympy.acot),
-        "asec": _D("arcsec", sympy.asec),
-        "arcsec": _D("arcsec", sympy.asec),
-        "acsc": _D("arccosec", sympy.acsc),
-        "arccsc": _D("arccosec", sympy.acsc),
-        "acosec": _D("arccosec", sympy.acsc),
-        "arccosec": _D("arccosec", sympy.acsc),
+        "asin": _D("arcsin", sympy.asin, False),
+        "arcsin": _D("arcsin", sympy.asin, False),
+        "acos": _D("arccos", sympy.acos, False),
+        "arccos": _D("arccos", sympy.acos, False),
+        "atan": _D("arctan", sympy.atan, False),
+        "arctan": _D("arctan", sympy.atan, False),
+        "acot": _D("arccot", sympy.acot, False),
+        "arccot": _D("arccot", sympy.acot, False),
+        "asec": _D("arcsec", sympy.asec, False),
+        "arcsec": _D("arcsec", sympy.asec, False),
+        "acsc": _D("arccosec", sympy.acsc, False),
+        "arccsc": _D("arccosec", sympy.acsc, False),
+        "acosec": _D("arccosec", sympy.acsc, False),
+        "arccosec": _D("arccosec", sympy.acsc, False),
         # Hyperbolic functions.
-        "sinh": _D("sinh", sympy.sinh),
-        "cosh": _D("cosh", sympy.cosh),
-        "tanh": _D("tanh", sympy.tanh),
-        "coth": _D("coth", sympy.coth),
-        "sech": _D("sech", lambda x: 1/sympy.cosh(x)),
-        "csch": _D("cosech", lambda x: 1/sympy.sinh(x)),
-        "cosech": _D("cosech", lambda x: 1/sympy.sinh(x)),
+        "sinh": _D("sinh", sympy.sinh, False),
+        "cosh": _D("cosh", sympy.cosh, False),
+        "tanh": _D("tanh", sympy.tanh, False),
+        "coth": _D("coth", sympy.coth, False),
+        "sech": _D("sech", lambda x: 1/sympy.cosh(x), False),
+        "csch": _D("cosech", lambda x: 1/sympy.sinh(x), False),
+        "cosech": _D("cosech", lambda x: 1/sympy.sinh(x), False),
         # Inverse hyperbolic functions.
-        "asinh": _D("arsinh", sympy.asinh),
-        "arsinh": _D("arsinh", sympy.asinh),
-        "acosh": _D("arcosh", sympy.acosh),
-        "arcosh": _D("arcosh", sympy.acosh),
-        "atanh": _D("artanh", sympy.atanh),
-        "artanh": _D("artanh", sympy.atanh),
-        "acoth": _D("arcoth", sympy.acoth),
-        "arcoth": _D("arcoth", sympy.acoth),
-        "asech": _D("arsech", lambda x: sympy.acosh(1/x)),
-        "arsech": _D("arsech", lambda x: sympy.acosh(1/x)),
-        "acsch": _D("arcosech", lambda x: sympy.asinh(1/x)),
-        "arcsch": _D("arcosech", lambda x: sympy.asinh(1/x)),
-        "acosech": _D("arcosech", lambda x: sympy.asinh(1/x)),
-        "arcosech": _D("arcosech", lambda x: sympy.asinh(1/x)),
+        "asinh": _D("arsinh", sympy.asinh, False),
+        "arsinh": _D("arsinh", sympy.asinh, False),
+        "acosh": _D("arcosh", sympy.acosh, False),
+        "arcosh": _D("arcosh", sympy.acosh, False),
+        "atanh": _D("artanh", sympy.atanh, False),
+        "artanh": _D("artanh", sympy.atanh, False),
+        "acoth": _D("arcoth", sympy.acoth, False),
+        "arcoth": _D("arcoth", sympy.acoth, False),
+        "asech": _D("arsech", lambda x: sympy.acosh(1/x), False),
+        "arsech": _D("arsech", lambda x: sympy.acosh(1/x), False),
+        "acsch": _D("arcosech", lambda x: sympy.asinh(1/x), False),
+        "arcsch": _D("arcosech", lambda x: sympy.asinh(1/x), False),
+        "acosech": _D("arcosech", lambda x: sympy.asinh(1/x), False),
+        "arcosech": _D("arcosech", lambda x: sympy.asinh(1/x), False),
         # e-function related.
-        "exp": _D("exp", sympy.exp),
-        "ln": _D("log", sympy.log),
-        "log": _D("log", sympy.log),
-        "log10": _D("log10", lambda x: sympy.log(x, 10)),
-        "log2": _D("log2", lambda x: sympy.log(x, 2)),
+        "exp": _D("exp", sympy.exp, False),
+        "ln": _D("log", sympy.log, False),
+        "log": _D("log", sympy.log, False),
+        "log10": _D("log10", lambda x: sympy.log(x, 10), False),
+        "log2": _D("log2", lambda x: sympy.log(x, 2), False),
         # Square root.
-        "sqrt": _D("√", sympy.sqrt),
-        "√": _D("√", sympy.sqrt),
-        # Absolute.
-        "abs": _D("abs", abs),
+        "sqrt": _D("√", sympy.sqrt, lambda u: u**0.5),
+        "√": _D("√", sympy.sqrt, lambda u: u**0.5),
         # Error function.
-        "erf": _D("erf", sympy.erf),
-        "erfc": _D("erfc", sympy.erfc),
+        "erf": _D("erf", sympy.erf, False),
+        "erfc": _D("erfc", sympy.erfc, False),
+        # Misc.
+        "abs": _D("abs", abs, True),
+        "floor": _D("floor", sympy.floor, False),
+        "ceil": _D("ceil", sympy.ceiling, False),
     }
 
     @classmethod
     def process(cls, s, loc, toks):
         # TODO: multiple arguments
         try:
-            fn_s, fn = cls._functions[toks[0][0]]
+            fn_s, fn, unit_support = cls._functions[toks[0][0]]
         except KeyError:
             raise UnknownFunctionError(toks[0][0])
         arg = toks[0][1]
-        return ParseResults([cls(fn_s, fn, arg)])
+        return ParseResults([cls(fn_s, fn, arg, unit_support)])
 
-    def __init__(self, fn_s, fn, arg):
+    def __init__(self, fn_s, fn, arg, unit_support):
         # TODO: multiple arguments
         self.fn_s = fn_s
         self.fn = fn
         self.arg = arg
+        self.unit_support = unit_support
 
     def __str__(self):
         return "{}({!s})".format(self.fn_s, self.arg)
 
     def evaluate(self, **kwargs):
         arg, = self._eval(self.arg, **kwargs)
-        return self.fn(arg)
+        if self.unit_support is True or not isinstance(arg, units.Q_):
+            return self.fn(arg)
+        elif self.unit_support is False:
+            return self.fn(arg.to("dimensionless"))
+        else:
+            m = arg.magnitude
+            u = arg.units
+            return units.Q_(self.fn(m), self.unit_support(u))
 
 
 class Constant(Operator):
