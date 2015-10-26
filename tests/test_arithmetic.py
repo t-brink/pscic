@@ -405,11 +405,43 @@ class TestUnits(unittest.TestCase):
 
 class TestFunctions(unittest.TestCase):
     def test_trig(self):
+        a = rand(-1e6, 1e6)
+        # sin
         self.assertEqual(pe("sin(0)"), 0)
         self.assertEqual(pe("sin(pi/2)"), 1)
         self.assertEqual(pe("sin(pi)"), 0)
         self.assertEqual(pe("sin(3pi/2)"), -1)
         self.assertEqual(pe("sin(2pi)"), 0)
+        self.assertAlmostEqual(pe("sin({})", a), math.sin(a))
+        # cos
+        self.assertEqual(pe("cos(0)"), 1)
+        self.assertEqual(pe("cos(pi/2)"), 0)
+        self.assertEqual(pe("cos(pi)"), -1)
+        self.assertEqual(pe("cos(3pi/2)"), 0)
+        self.assertEqual(pe("cos(2pi)"), 1)
+        self.assertAlmostEqual(pe("cos({})", a), math.cos(a))
+        # tan
+        pass
+
+    def test_units(self):
+        self.assertEqual(pe("sqrt(1m^2)"), 1*ureg.meter)
+        with self.assertRaises(ValueError):
+            pe("sin(2cm)")
+        with self.assertRaises(ValueError):
+            pe("ceil(2cm)")
+        self.assertEqual(pe("abs(-2in)"), 2*ureg.inch)
+
         # .....   
 
     # ....   
+
+
+class TestEquality(unittest.TestCase):
+    def test_identities(self):
+        #
+        self.assertEqual(pe("cos(x) + i*sin(x) = exp(x*i)"), True)
+        # pq-formula.
+        solutions = sorted(pe("x**2 + 3*x - 4 = 0").solutions)
+        self.assertEqual(len(solutions), 2)
+        self.assertAlmostEqual(solutions[0], -4)
+        self.assertAlmostEqual(solutions[1], 1)

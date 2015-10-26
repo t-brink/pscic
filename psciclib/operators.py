@@ -28,6 +28,28 @@ from . import units
 _X = sympy.symbols("x")
 
 
+def _apply(obj, method, args, kwargs, exclude_classes=()):
+    """Call method on obj, except if obj is instance of on of exclude_classes.
+
+    If the object is a pint Quantity, only call the method on the
+    magnitude, not the unit. Method is called with args and kwargs.
+
+    """
+    if isinstance(obj, exclude_classes):
+        return obj
+    # Strip unit.
+    is_q = isinstance(obj, units.Q_)
+    if is_q:
+        magnitude = obj.magnitude
+    else:
+        magnitude = obj
+    magnitude = getattr(magnitude, method)(*args, **kwargs)
+    if is_q:
+        return units.Q_(magnitude, obj.units)
+    else:
+        return magnitude
+
+
 class Wrapper:
     """This is the primary API for complete command lines.
 
@@ -40,7 +62,7 @@ class Wrapper:
     def __str__(self):
         return str(self.cmd)
 
-    def evaluate_exact(self, **kwargs):
+    def evaluate_asis(self, **kwargs):
         """Evaluate, not converting explicitly to float."""
         return self.cmd.evaluate(**kwargs)
 
@@ -50,22 +72,18 @@ class Wrapper:
         That means, convert to float where not already float or integer.
 
         """
-        evaluated = self.evaluate_exact(**kwargs)
-        # Strip unit.
-        if isinstance(evaluated, units.Q_):
-            magnitude = evaluated.magnitude
-        else:
-            magnitude = evaluated
-        # Eval to float if necessary.
-        if (not isinstance(magnitude, sympy.numbers.Integer)
-            and not isinstance(magnitude, sympy.numbers.Float)
-            and not isinstance(magnitude, str)):
-            magnitude = magnitude.evalf()
-        # Add unit if necessary and return.
-        if isinstance(evaluated, units.Q_):
-            return units.Q_(magnitude, evaluated.units)
-        else:
-            return magnitude
+        evaluated = self.evaluate_asis(**kwargs)
+        return _apply(evaluated, "evalf", (), {},
+                      exclude_classes=(sympy.numbers.Integer,
+                                       sympy.numbers.Float,
+                                       bool))
+
+    def evaluate_simplify(self, **kwargs):
+        """Evaluate, not converting to float, but trying to simplify
+        expression."""
+        evaluated = self.evaluate_asis(**kwargs)
+        return _apply(evaluated, "simplify", (), {},
+                      exclude_classes=(bool))
 
 
 # Helper classes for primitive literals.
@@ -179,7 +197,11 @@ class Equality(Operator):
                                                    for i in self.solutions))
 
         def evalf(self, *args, **kwargs):
-            return self.__class__(self.x, [i.evalf(*args, **kwargs)
+            return self.__class__(self.x, [_apply(i, "evalf", args, kwargs)
+                                           for i in self.solutions])
+
+        def simplify(self, *args, **kwargs):
+            return self.__class__(self.x, [_apply(i, "simplify", args, kwargs)
                                            for i in self.solutions])
 
     def __init__(self, lhs, rhs):
@@ -203,11 +225,11 @@ class Equality(Operator):
         eq = sympy.Eq(lhs, rhs)
         # Check if we can already say the expression is true or false.
         if eq is true or eq is false:
-            return str(eq)
+            return bool(eq)
         # Try harder.
         eq = eq.simplify()
         if eq is true or eq is false:
-            return str(eq)
+            return bool(eq)
         # Try to solve for x.
         try:
             solutions = sympy.solve(eq, _X)
