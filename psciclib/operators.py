@@ -25,7 +25,7 @@ from .exceptions import (UnknownFunctionError,
 from . import units
 
 
-_X = sympy.symbols("x")
+_X = sympy.Symbol("x")
 
 
 def _apply(obj, method, args, kwargs, exclude_classes=()):

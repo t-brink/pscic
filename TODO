@@ -28,6 +28,12 @@ In order:
     need a temporary conversion to sympy units or something. Alternatively
     every unit will be converted to a symbol and re-translated in the end.
 **** Also missing: unit conversion for solutions.
+** assumptions for x would be nice!
+** using <expr>.atoms(sympy.Symbol), we can find all variables in an
+   expression. This may be of some use for the solver/plotter, e.g.,
+   if both x and y are in there, plot 3D.
+** x + 1cm does not work, complaining about the different units, when
+   in fact this means that x simply is a length!
 
 * support constants (a bunch of letters instead of numbers)
 ** e, pi, physical constants, ... [e,pi,i implemented]

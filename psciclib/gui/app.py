@@ -27,6 +27,8 @@ from ..exceptions import Error
 from ..units import Q_
 from .helpwindow import HelpWindow
 from .aboutwindow import AboutWindow
+from .widgets.inputwidget import InputWidget
+from .widgets.outputwidget import OutputWidget
 
 
 # TODO:            
@@ -46,30 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_area = QtWidgets.QWidget(parent=self)
 
         # Widgets.
-        self.input_field = QtWidgets.QLineEdit(parent=self.input_area)
+        self.input_widget = InputWidget(self.input_area)
+        self.input_widget.returnPressed.connect(self.calculate)
 
-        self.parsed_field = QtWidgets.QLabel(parent=self.input_area)
-        self.parsed_field.setTextInteractionFlags(
-            Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
-        )
-
-        self.mode_field = QtWidgets.QLabel(parent=self.input_area)
-
-        below_entry_layout = QtWidgets.QHBoxLayout()
-        below_entry_layout.addWidget(self.parsed_field)
-        self.parsed_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                        QtWidgets.QSizePolicy.Fixed)
-        below_entry_layout.addWidget(self.mode_field)
-        self.mode_field.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                      QtWidgets.QSizePolicy.Fixed)
-
-        self.output_field = QtWidgets.QLabel(parent=self.input_area)
-        self.output_field.setTextInteractionFlags(
-            Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
-        )
-        self.output_field.setAlignment(Qt.AlignRight | Qt.AlignTop)
-
-        self.input_field.returnPressed.connect(self.calculate)
+        self.output_widget = OutputWidget(parent=self.input_area)
 
         # Small toolbar to the right.
         #TODO:
@@ -83,7 +65,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.exact_or_float.setText("Exact")
         self.exact_or_float.setCheckable(True)
         self.exact_or_float.setChecked(False)
-        self.exact_or_float.toggled.connect(self.calculate)
+        self.exact_or_float.toggled.connect(
+            lambda: self.calculate(self.input_widget.text)
+        )
         self.exact_or_float.toggled.connect(self.update_mode_field)
         # TODO: do not re-calculate, but change the output only     
         #       this needs support in the lower layers              
@@ -93,7 +77,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.float_display.addItem("Engineering", "eng")
         self.float_display.addItem("Scientific", "sci")
         self.float_display.addItem("Simple", "simp")
-        self.float_display.currentIndexChanged.connect(self.calculate)
+        self.float_display.currentIndexChanged.connect(
+            lambda: self.calculate(self.input_widget.text)
+        )
         # TODO: do not re-calculate, but change the output only     
         #       this needs support in the lower layers              
 
@@ -106,13 +92,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Layout for the widgets.
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.input_field)
-        self.input_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                       QtWidgets.QSizePolicy.Fixed)
-        layout.addLayout(below_entry_layout)
-        layout.addWidget(self.output_field)
-        self.output_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                        QtWidgets.QSizePolicy.Expanding)
+        layout.addWidget(self.input_widget)
+        layout.addWidget(self.output_widget)
         layout.addLayout(output_ctrls_layout)
 
         # Assign the input area to the main window.
@@ -146,21 +127,15 @@ class MainWindow(QtWidgets.QMainWindow):
         # Init mode display. ###########################################
         self.update_mode_field()
 
-    def calculate(self):
-        expr = self.input_field.text()
-
+    def calculate(self, expr):
         # Parse.
         try:
             tree = parseexpr.parse(expr)
         except (Error, pyparsing.ParseException) as e:
-            self.parsed_field.setText("")
-            self.output_field.setText(
-                r'<span style="color:red;">{!s}</span>'.format(e)
-            )
+            self.input_widget.set_parsed_field("")
+            self.output_widget.update_output(e)
             return
-        self.parsed_field.setText(
-            r'<span style="color:gray;">{!s}</span>'.format(tree)
-        )
+        self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
             if self.exact_or_float.isChecked():
@@ -168,40 +143,15 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 val = tree.evaluate()
         except ValueError as e:
-            self.output_field.setText(
-                r'<span style="color:red;">ValueError: {!s}</span>'.format(e)
-            )
+            self.output_widget.update_output(e)
             return
         # Output.
-        if isinstance(val, Q_):
-            # pretty-print units.
-            val = "= {:H~}".format(val)
-        elif isinstance(val, operators.Equality.Solutions):
-            val = "<br>".join(
-                "<i>{!s}</i> = {}".format(
-                    val.x,
-                    ("{:H~}".format(sol)
-                     if isinstance(sol, Q_)
-                     else "{!s}".format(sol))
-                )
-                for sol in val.solutions)
-        elif isinstance(val, bool):
-            val = str(val)
-        else:
-            val = "= {!s}".format(val)
-        self.output_field.setText(r'<span style="font-size: x-large;">'
-                                  + val
-                                  + r'</span>')
+        self.output_widget.update_output(val)
 
     def update_mode_field(self):
-        self.mode_field.setText(
-            r'<span style="font-size: small;">'
-            + "{}{}"
-            "".format(
-                ("EXACT " if self.exact_or_float.isChecked() else ""),
-                "RAD",
-            )
-            + r'</span>'
+        self.input_widget.update_mode_field(
+            self.exact_or_float.isChecked(),
+            "rad"
         )
 
     def show_help(self):
