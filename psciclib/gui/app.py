@@ -29,6 +29,7 @@ from .helpwindow import HelpWindow
 from .aboutwindow import AboutWindow
 from .widgets.inputwidget import InputWidget
 from .widgets.outputwidget import OutputWidget
+from .widgets.outputctrls import OutputCtrls
 
 
 # TODO:            
@@ -60,41 +61,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # - button: computer readable output, for copy-pasting
 
         # Output controls.
-        self.output_label = QtWidgets.QLabel("Output:")
-        self.exact_or_float = QtWidgets.QToolButton(parent=self.input_area)
-        self.exact_or_float.setText("Exact")
-        self.exact_or_float.setCheckable(True)
-        self.exact_or_float.setChecked(False)
-        self.exact_or_float.toggled.connect(
-            lambda: self.calculate(self.input_widget.text)
-        )
-        self.exact_or_float.toggled.connect(self.update_mode_field)
-        # TODO: do not re-calculate, but change the output only     
-        #       this needs support in the lower layers              
-
-        self.float_display = QtWidgets.QComboBox(parent=self.input_area)
-        self.float_display.addItem("Normal", "norm")
-        self.float_display.addItem("Engineering", "eng")
-        self.float_display.addItem("Scientific", "sci")
-        self.float_display.addItem("Simple", "simp")
-        self.float_display.currentIndexChanged.connect(
-            lambda: self.calculate(self.input_widget.text)
-        )
-        # TODO: do not re-calculate, but change the output only     
-        #       this needs support in the lower layers              
-
-        output_ctrls_layout = QtWidgets.QHBoxLayout()
-        output_ctrls_layout.addWidget(self.output_label)
-        self.output_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                        QtWidgets.QSizePolicy.Fixed)
-        output_ctrls_layout.addWidget(self.exact_or_float)
-        output_ctrls_layout.addWidget(self.float_display)
+        self.output_ctrls = OutputCtrls()
+        def output_ctrls_changed(*args):
+            self.update_mode_field(*args)
+            # TODO: do not re-calculate, but change the output only     
+            #       this needs support in the lower layers              
+            self.calculate(self.input_widget.text)
+        self.output_ctrls.changed.connect(output_ctrls_changed)
 
         # Layout for the widgets.
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.input_widget)
         layout.addWidget(self.output_widget)
-        layout.addLayout(output_ctrls_layout)
+        layout.addWidget(self.output_ctrls)
 
         # Assign the input area to the main window.
         self.input_area.setLayout(layout)
@@ -125,9 +104,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__aw = None
 
         # Init mode display. ###########################################
-        self.update_mode_field()
+        self.calc_exact = None
+        self.calc_float_display = None
+        self.calc_trigmode = None
+        self.update_mode_field(*self.output_ctrls.data)
 
     def calculate(self, expr):
+        if not expr.strip():
+            # Empty.
+            self.input_widget.set_parsed_field("")
+            self.output_widget.update_output(None)
+            return
         # Parse.
         try:
             tree = parseexpr.parse(expr)
@@ -138,7 +125,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
-            if self.exact_or_float.isChecked():
+            if self.calc_exact:
                 val = tree.evaluate_simplify()
             else:
                 val = tree.evaluate()
@@ -148,11 +135,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Output.
         self.output_widget.update_output(val)
 
-    def update_mode_field(self):
-        self.input_widget.update_mode_field(
-            self.exact_or_float.isChecked(),
-            "rad"
-        )
+    def update_mode_field(self, exact, float_display):
+        self.calc_exact = exact
+        self.calc_float_display = float_display
+        self.calc_trigmode = "rad"
+        self.input_widget.update_mode_field(exact, "rad")
 
     def show_help(self):
         if not self.__hw:

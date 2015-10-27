@@ -51,6 +51,9 @@ class OutputWidget(QtWidgets.QWidget):
         elif isinstance(val, ValueError):
             style = "color: red;"
             text = "Value error: " + str(val)
+        elif val is None:
+            style = ""
+            text = ""
         else:
             # Correct output.
             style = "font-size: x-large;"
