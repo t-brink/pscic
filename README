@@ -1,14 +1,14 @@
 Dependencies
 ============
 
-* Python 3.x  (PSFL)
-* pyparsing   (MIT)
-* pint        (3-clause BSD)
-* appdirs     (MIT)
-* pyqt5 (optional)        (GPLv3)
+* Python 3.x       (PSFL)
+* pyparsing        (MIT)
+* pint             (3-clause BSD)
+* appdirs          (MIT)
+* sympy            (3-clause BSD)
+* pyqt5 (optional) (GPLv3)
 
 later (TODO)
 
-* sympy                   (3-clause BSD)
 * matplotlib (optional)   (own license)
 * numpy/scipy             (3-clause BSD)

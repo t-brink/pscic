@@ -32,6 +32,10 @@ from .aboutwindow import AboutWindow
 # TODO:            
 # * Put parts of the main window into separate custom widgets to reduce
 #   clutter
+# ** input widget (linedit + parsed expr + modeline)
+# ** output widget (output + explanation + pretty printing methods)
+# *** this one should actually pretty-print the output (MathML/LaTeX/...)
+# ** output modifying widets (exact, normal/sci/eng/simp, ...)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -66,6 +70,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.output_field.setAlignment(Qt.AlignRight | Qt.AlignTop)
 
         self.input_field.returnPressed.connect(self.calculate)
+
+        # Small toolbar to the right.
+        #TODO:
+        # - button: to base units (easy, pint has a method)
+        # - button: to best units (not easy??)
+        # - button: computer readable output, for copy-pasting
 
         # Output controls.
         self.output_label = QtWidgets.QLabel("Output:")
