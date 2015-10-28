@@ -69,7 +69,7 @@ In order:
 * support variables (x,y,z only perhaps?) [sympy does all the work]
 ** calculate everything except them [sympy]
 ** really useful when introducing the = sign, to solve a Dreisatz etc.
-*** needs to auto-solve for equalities (and inequalities)
+*** needs to auto-solve for equalities (and inequalities) [equalities done]
 ** auto-plot?
 
 * matrices/vectors (numpy)

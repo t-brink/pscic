@@ -91,6 +91,13 @@ def process_int(s, loc, toks):
     return sympy.Integer(toks[0])
 
 
+__bases = {"0x": 16, "0o": 8, "0b": 2}
+def process_intbase(s, loc, toks):
+    base = __bases[toks[0][0]]
+    i = int(toks[0][1], base)
+    return sympy.Integer(i)
+
+
 def process_float(s, loc, toks):
     return sympy.Float(toks[0])
 

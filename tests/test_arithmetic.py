@@ -386,6 +386,11 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("1 m^-2"), ureg.meter**(-2))
         self.assertEqual(pe("1*m^-2"), ureg.meter**(-2))
 
+    def test_intbases(self):
+        self.assertEqual(pe("0b110001110101"), 0b110001110101)
+        self.assertEqual(pe("0o13741265"), 0o13741265)
+        self.assertEqual(pe("0x782FA3BE546C9D10"), 0x782FA3BE546C9D10)
+
 
 class TestUnits(unittest.TestCase):
     def test_conversion(self):
@@ -421,7 +426,11 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(pe("cos(2pi)"), 1)
         self.assertAlmostEqual(pe("cos({})", a), math.cos(a))
         # tan
-        pass
+        self.assertEqual(pe("tan(0)"), 0)
+        self.assertEqual(pe("tan(pi/4)"), 1)
+        self.assertEqual(pe("tan(-pi/4)"), -1)
+        self.assertEqual(pe("tan(pi)"), 0)
+        self.assertEqual(pe("tan(-pi)"), 0)
 
     def test_units(self):
         self.assertEqual(pe("sqrt(1m^2)"), 1*ureg.meter)
@@ -430,10 +439,6 @@ class TestFunctions(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe("ceil(2cm)")
         self.assertEqual(pe("abs(-2in)"), 2*ureg.inch)
-
-        # .....   
-
-    # ....   
 
 
 class TestEquality(unittest.TestCase):

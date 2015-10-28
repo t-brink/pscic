@@ -51,10 +51,17 @@ float_ = Regex(r'''[0-9]+           # integer part
                re.VERBOSE)
 float_.setParseAction(operators.process_float)
 
+hexint = Group( Literal("0x") + Regex(r'[0-9a-fA-F]+') )
+hexint.setParseAction(operators.process_intbase)
+octint = Group( Literal("0o") + Regex(r'[0-7]+') )
+octint.setParseAction(operators.process_intbase)
+binint = Group( Literal("0b") + Regex(r'[01]+') )
+binint.setParseAction(operators.process_intbase)
+
 variable = identifier.copy()
 variable.setParseAction(operators.Constant.process)
 
-number = float_ | integer
+number = float_ | hexint | octint | binint | integer
 
 operand = number | variable
 
