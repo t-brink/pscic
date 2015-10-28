@@ -58,10 +58,23 @@ octint.setParseAction(operators.process_intbase)
 binint = Group( Literal("0b") + Regex(r'[01]+') )
 binint.setParseAction(operators.process_intbase)
 
+hexreal = Group( Literal("0x") + Regex(r'[0-9a-fA-F]+')
+                 + Literal(".") +  Regex(r'[0-9a-fA-F]+'))
+hexreal.setParseAction(operators.process_realbase)
+octreal = Group( Literal("0o") + Regex(r'[0-7]+')
+                 + Literal(".") + Regex(r'[0-7]+') )
+octreal.setParseAction(operators.process_realbase)
+binreal = Group( Literal("0b") + Regex(r'[01]+')
+                 + Literal(".") + Regex(r'[01]+') )
+binreal.setParseAction(operators.process_realbase)
+
 variable = identifier.copy()
 variable.setParseAction(operators.Constant.process)
 
-number = float_ | hexint | octint | binint | integer
+number = (
+    float_ | hexreal | octreal | binreal
+    | hexint | octint | binint | integer
+)
 
 operand = number | variable
 

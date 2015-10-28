@@ -98,6 +98,16 @@ def process_intbase(s, loc, toks):
     return sympy.Integer(i)
 
 
+def process_realbase(s, loc, toks):
+    int_part = toks[0][0]
+    base = __bases[toks[0][0]]
+    i = sympy.Integer(int(toks[0][1], base))
+    frac_part = toks[0][3]
+    exp = len(frac_part)
+    r = sympy.Rational(int(frac_part, base), base**exp)
+    return i+r
+
+
 def process_float(s, loc, toks):
     return sympy.Float(toks[0])
 

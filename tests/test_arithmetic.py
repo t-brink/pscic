@@ -391,6 +391,28 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("0o13741265"), 0o13741265)
         self.assertEqual(pe("0x782FA3BE546C9D10"), 0x782FA3BE546C9D10)
 
+    def test_realbases(self):
+        # hex
+        self.assertAlmostEqual(pe("0xA.8"), 10.5)
+        self.assertAlmostEqual(pe("0x0.5555555555555555555555555"),
+                               0.3333333333333333333333333333)
+        self.assertAlmostEqual(pe("0x0.4"), 0.25)
+        self.assertAlmostEqual(pe("0x0.2"), 0.125)
+        self.assertAlmostEqual(pe("0x0.1"), 0.0625)
+        # oct
+        self.assertAlmostEqual(pe("0o1.01"), 1+1/64)
+        self.assertAlmostEqual(pe("0o0.1"), 1/8)
+        self.assertAlmostEqual(pe("0o0.2"), 1/4)
+        self.assertAlmostEqual(pe("0o0.4"), 1/2)
+        self.assertAlmostEqual(pe("0o0.5"), 5/8)
+        self.assertAlmostEqual(pe("0o0.6"), 3/4)
+        self.assertAlmostEqual(pe("0o0.7"), 7/8)
+        # bin
+        self.assertAlmostEqual(pe("0b1.1"), 3/2)
+        self.assertAlmostEqual(pe("0b0.1"), 1/2)
+        self.assertAlmostEqual(pe("0b0.01"), 1/4)
+        self.assertAlmostEqual(pe("0b0.11"), 3/4)
+        self.assertAlmostEqual(pe("0b0.10"), 1/2)
 
 class TestUnits(unittest.TestCase):
     def test_conversion(self):
