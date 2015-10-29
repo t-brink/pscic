@@ -33,6 +33,10 @@ class StatusBar:
     def set_msg(self, text):
         self.status_msg.setText(text)
 
+    def set_tmp(self, text, timeout=1000):
+        """Temporary status bar message."""
+        self.status_bar.showMessage('=> ' + text + ' <=', timeout)
+
     def set_walltime(self, time):
         if time < 0.001:
             s = "{:.2e}".format(time)

@@ -63,6 +63,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.quick_buttons.input_size_toggled.connect(
             self.input_widget.toggle_multi_line
         )
+        self.quick_buttons.base_units_clicked.connect(self.to_base_units)
+        self.quick_buttons.best_units_clicked.connect(self.to_best_units)
+        self.quick_buttons.copy_paste_clicked.connect(self.copy_paste_mode)
         # Update icon.
         self.quick_buttons.set_input_toggle_btn(self.input_widget.is_multi_line)
         self.input_widget.toggledMultiLine.connect(
@@ -155,6 +158,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calc_float_display = float_display
         self.calc_trigmode = "rad"
         self.input_widget.update_mode_field(exact, "rad")
+
+    def to_base_units(self):
+        self.sb.set_tmp("To base units not implemented")
+
+    def to_best_units(self):
+        self.sb.set_tmp("To best units not implemented")
+
+    def copy_paste_mode(self):
+        self.sb.set_tmp("Copy/paste mode not implemented")
 
     def show_help(self):
         if not self.__hw:
