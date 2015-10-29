@@ -83,7 +83,7 @@ class Wrapper:
         expression."""
         evaluated = self.evaluate_asis(**kwargs)
         return _apply(evaluated, "simplify", (), {},
-                      exclude_classes=(bool))
+                      exclude_classes=(bool,))
 
 
 # Helper classes for primitive literals.

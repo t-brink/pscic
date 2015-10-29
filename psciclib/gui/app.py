@@ -15,6 +15,7 @@
 
 import os
 import time
+import signal
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
@@ -169,5 +170,15 @@ def main(argv):
 
     main_window = MainWindow()
     main_window.show()
+
+    # Install SIGNINT handler.
+    signal.signal(signal.SIGINT, lambda *args: QtWidgets.QApplication.quit())
+
+    # Let Python handle signals every 500 ms, so that for example
+    # ctrl-c on the command line works.
+    timer = QtCore.QTimer()
+    timer.timeout.connect(lambda: None) # this just drops to python's
+                                        # main thread
+    timer.start(500)
 
     return app.exec_()
