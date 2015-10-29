@@ -49,8 +49,6 @@ In order:
 * support plots
 
 * GUI
-** Put program name, version number, copyright years, ... into variables so
-   that we do not have to update stuff all over the place.
 ** Add a hint field that will tell you something about the result if it is
    unexpected:
 *** a result of "zoo" should hint: Complex Infinity, most likely your

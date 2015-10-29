@@ -25,6 +25,7 @@ import pyparsing
 
 from .. import parseexpr
 from .. import operators
+from .. import version
 from ..exceptions import Error
 from ..units import Q_
 from .helpwindow import HelpWindow
@@ -109,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sb = StatusBar(sb)
 
         # Other settings and decorations. ##############################
-        self.setWindowTitle("pscic")
+        self.setWindowTitle(version.progname)
 
         # Prepare sub-windows. #########################################
         self.__hw = None

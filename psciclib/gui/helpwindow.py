@@ -18,6 +18,7 @@ import os
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWebKitWidgets import QWebView
 
+from .. import version
 
 class HelpWindow(QtWidgets.QWidget):
 
@@ -45,6 +46,6 @@ class HelpWindow(QtWidgets.QWidget):
         self.setLayout(layout)
 
         # Title
-        self.setWindowTitle("pscic help")
+        self.setWindowTitle("{} help".format(version.progname))
 
 

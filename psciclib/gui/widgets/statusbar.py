@@ -16,17 +16,18 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5 import QtWidgets
 
+from ... import version
 
 class StatusBar:
 
     def __init__(self, status_bar, parent=None):
         self.status_bar = status_bar
         # Version display. TODO: Do we want that?
-        self.permanent_msg = QtWidgets.QLabel("v0.0") # TODO: don't hardcode   
+        self.permanent_msg = QtWidgets.QLabel("v" + version.version)
         self.status_bar.addPermanentWidget(self.permanent_msg)
         # Normal status display.
         self.status_msg = QtWidgets.QLabel(
-            "Welcome to {}!".format("pscic") # TODO: don't hardcode
+            "Welcome to {}!".format(version.progname)
         )
         self.status_bar.addWidget(self.status_msg)
 

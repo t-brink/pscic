@@ -17,6 +17,7 @@ import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtSvg
 
+from .. import version
 
 class AboutWindow(QtWidgets.QWidget):
 
@@ -24,7 +25,7 @@ class AboutWindow(QtWidgets.QWidget):
     __icon_path = os.path.abspath(
         os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
-            "logo-path.svg"))
+            "icons", "logo-path.svg"))
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -41,14 +42,19 @@ class AboutWindow(QtWidgets.QWidget):
         self.icon = QtWidgets.QLabel()
         self.icon.setPixmap(self.icon_pixmap)
 
-        self.titletext = QtWidgets.QLabel("pscic version TODO")
+        self.titletext = QtWidgets.QLabel(
+            "{} version {}".format(version.progname, version.version)
+        )
 
         layout1 = QtWidgets.QHBoxLayout()
         layout1.addWidget(self.icon)
         layout1.addWidget(self.titletext)
 
-        # The authors.
-        self.authors = QtWidgets.QLabel("Authors:<br>Tobias Brink")
+        # The authors. TODO: get list from soem file    
+        self.authors = QtWidgets.QLabel("Authors:<br>Tobias Brink"
+                                        "<br><br>"
+                                        "(C) "
+                                        "{}".format(version.copyright_years))
 
         # The license texts.
         self.license = QtWidgets.QLabel(
@@ -68,6 +74,6 @@ class AboutWindow(QtWidgets.QWidget):
         self.setLayout(layout)
 
         # Title
-        self.setWindowTitle("About pscic")
+        self.setWindowTitle("About {}".format(version.progname))
 
 

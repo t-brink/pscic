@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import version
-
-__version__ = version.version
+version = "0.1dev0" # see PEP 440
+progname = "pscic"
+maintainer = "Tobias Brink <tobias.brink@gmail.com>"
+copyright_years = "2015"
