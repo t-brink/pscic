@@ -39,6 +39,15 @@ class OutputCtrls(QtWidgets.QWidget):
         self.float_display.addItem("Simple", "simp")
         self.float_display.currentIndexChanged.connect(self.emit_changed)
 
+        self.number_system = QtWidgets.QComboBox(parent=self)
+        self.number_system.addItem("Binary", "bin")
+        self.number_system.addItem("Octal", "oct")
+        self.number_system.addItem("Decimal", "dec")
+        self.number_system.addItem("Hexadecimal", "hex")
+        self.number_system.addItem("Roman numeral", "roman")
+        self.number_system.setCurrentIndex(2)
+        self.number_system.currentIndexChanged.connect(self.emit_changed)
+
         # Set layout.
         layout = QtWidgets.QHBoxLayout()
 
@@ -47,8 +56,8 @@ class OutputCtrls(QtWidgets.QWidget):
                                         QtWidgets.QSizePolicy.Fixed)
 
         layout.addWidget(self.exact_or_float)
-
         layout.addWidget(self.float_display)
+        layout.addWidget(self.number_system)
 
         self.setLayout(layout)
 

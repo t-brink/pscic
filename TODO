@@ -13,33 +13,25 @@ In order:
   Just need to get it to play nice with pint
 ** mostly DONE
 ** need to control output (i.e. exact vs float; float precision; ...)
-** the output should try to be exact if possible. this works for simple cases,
-   i.e. 42 -> 42; 1/2 -> 0.5
-   but fails for slightly more complex stuff like
-   17*x -> 17.0*x   which should still be 17*x
-   2/3 * x -> 0.6666666667 * x   which works
 ** remove trailing zeros from floats on output
 ** DOES NOT YET PLAY NICE WITH UNITS! sympy unit support is not up to
    scratch with regard to pint, so we need to hammer those together
-   ourselves! [DONE]
+   ourselves!
 *** only unit to the power of symbolic does not work, yet, but probably
     should (no priority).
 *** solving equalities with units is not supported, yet. This will probably
     need a temporary conversion to sympy units or something. Alternatively
     every unit will be converted to a symbol and re-translated in the end.
-**** Also missing: unit conversion for solutions.
+*** Also missing: unit conversion for solutions.
+*** x + 1cm does not work, complaining about the different units, when
+    in fact this means that x simply is a length!
 ** assumptions for x would be nice!
 ** using <expr>.atoms(sympy.Symbol), we can find all variables in an
    expression. This may be of some use for the solver/plotter, e.g.,
    if both x and y are in there, plot 3D.
-** x + 1cm does not work, complaining about the different units, when
-   in fact this means that x simply is a length!
 
 * support constants (a bunch of letters instead of numbers)
-** e, pi, physical constants, ... [e,pi,i implemented]
-** if a constant follows a number or ), the multiplication sign may be left out;
-   in contrast to qalculate the sign is needed if the constant is in front of
-   the number (this makes both 2e = 2*e and 2e3 = 2*10^3 unambiguously defined) [done]
+** physical constants are still missing
 ** write tests!
 
 * support units [should work in general, see below]

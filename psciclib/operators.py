@@ -568,6 +568,24 @@ class Function(Operator):
         "abs": _D("abs", abs, True),
         "floor": _D("floor", sympy.floor, False),
         "ceil": _D("ceil", sympy.ceiling, False),
+        # Geometry.
+        "circle_area": _D("circle_area", lambda r: sympy.pi * r**2, True),
+        "circle_circ": _D("circle_circumference",
+                          lambda r: 2 * sympy.pi * r, True),
+        "circle_circumference": _D("circle_circumference",
+                                   lambda r: 2 * sympy.pi * r, True),
+        "sphere_vol": _D("sphere_volume",
+                         lambda r: sympy.Rational(4,3) * sympy.pi * r**3,
+                         True),
+        "sphere_volume": _D("sphere_volume",
+                            lambda r: sympy.Rational(4,3) * sympy.pi * r**3,
+                            True),
+        "sphere_surf": _D("sphere_surface",
+                          lambda r: 4 * sympy.pi * r**2,
+                          True),
+        "sphere_surface": _D("sphere_surface",
+                             lambda r: 4 * sympy.pi * r**2,
+                             True),
     }
 
     @classmethod
