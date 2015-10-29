@@ -30,6 +30,7 @@ from .aboutwindow import AboutWindow
 from .widgets.inputwidget import InputWidget
 from .widgets.outputwidget import OutputWidget
 from .widgets.outputctrls import OutputCtrls
+from .widgets.quickbuttons import QuickButtons
 
 
 # TODO:            
@@ -55,10 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.output_widget = OutputWidget(parent=self.input_area)
 
         # Small toolbar to the right.
-        #TODO:
-        # - button: to base units (easy, pint has a method)
-        # - button: to best units (not easy??)
-        # - button: computer readable output, for copy-pasting
+        self.quick_buttons = QuickButtons(parent=self.input_area)
 
         # Output controls.
         self.output_ctrls = OutputCtrls()
@@ -70,10 +68,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.output_ctrls.changed.connect(output_ctrls_changed)
 
         # Layout for the widgets.
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.input_widget)
-        layout.addWidget(self.output_widget)
-        layout.addWidget(self.output_ctrls)
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(self.input_widget, 0, 0)
+        layout.addWidget(self.quick_buttons, 0, 1, 2, 1)
+        layout.addWidget(self.output_widget, 1, 0)
+        layout.addWidget(self.output_ctrls, 2, 0, 1, 2)
 
         # Assign the input area to the main window.
         self.input_area.setLayout(layout)
