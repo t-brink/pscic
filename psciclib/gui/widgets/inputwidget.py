@@ -15,7 +15,7 @@
 
 #import re
 
-from PyQt5.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, QMimeData, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QSyntaxHighlighter, QTextCursor, QColor
 from PyQt5 import QtWidgets
 
@@ -38,25 +38,27 @@ class InputEdit(QtWidgets.QPlainTextEdit):
 
     # TODO:
     #   * completion drop-down   
-    #   * can still paste newlines!
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         # Display this when empty.
-        #self.setPlaceholderText("Hi there!")
+        self.setPlaceholderText("Enter expression.")
 
-        # Convert to single line.
-        self.setLineWrapMode(super().NoWrap)
         self.setTabChangesFocus(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setLineWrapMode(super().NoWrap)
         # Height one line. We use a hidden QLineEdit to shamefully
-        # steal its size data.
+        # steal its size data when we are in single-line mode.
         self._line_edit = QtWidgets.QLineEdit(parent=self)
         self._line_edit.hide()
         self.setMinimumHeight(self._line_edit.minimumHeight())
-        self.setMaximumHeight(self._line_edit.maximumHeight())
+
+        # Store default max height.
+        self.__deflt_max_height = self.maximumHeight()
+
+        # Convert to single line.
+        self.single_line = True
+        self._set_single_line()
 
         # Highlight matching parentheses on cursor change.
         self.cursorPositionChanged.connect(self._match_parentheses)
@@ -64,17 +66,65 @@ class InputEdit(QtWidgets.QPlainTextEdit):
         self.setBackgroundVisible(True)
 
     def sizeHint(self):
-        return self._line_edit.sizeHint()
+        if self.single_line:
+            return self._line_edit.sizeHint()
+        else:
+            return super().sizeHint()
 
     def minimumSizeHint(self):
-        return self._line_edit.minimumSizeHint()
+        if self.single_line:
+            return self._line_edit.minimumSizeHint()
+        else:
+            return super().minimumSizeHint()
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if (
+                (
+                    self.single_line
+                    or (event.modifiers() & Qt.ControlModifier)
+                )
+                and event.key() in (Qt.Key_Enter, Qt.Key_Return)
+            ):
             self.returnPressed.emit(self.toPlainText())
             event.accept()
         else:
             super().keyPressEvent(event)
+
+    def _set_single_line(self):
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setMaximumHeight(self._line_edit.maximumHeight())
+
+    def _set_multi_line(self):
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setMaximumHeight(self.__deflt_max_height)
+
+    def toggle_multi_line(self):
+        if self.single_line:
+            self._set_multi_line()
+            self.single_line = False
+        else:
+            self._set_single_line()
+            self.single_line = True
+            # Remove newlines from input.
+            # TODO:  does windows+mac work?    
+            # TODO: mark the positions until text is changed, so that we
+            #       can restore the newlines     
+            self.setPlainText(self.toPlainText().replace("\n", " "))
+        self.updateGeometry()
+
+    def insertFromMimeData(self, source):
+        """Remove newlines from pasted text if necessary."""
+        if self.single_line:
+            # Remove newlines.
+            text = source.text()
+            mime = QMimeData()
+            # TODO:  does windows+mac work?    
+            mime.setText(text.replace("\n", " "))
+        else:
+            mime = source
+        super().insertFromMimeData(mime)
 
     def _match_parentheses(self):
         self.setExtraSelections([]) # clear selections
@@ -136,6 +186,7 @@ class InputEdit(QtWidgets.QPlainTextEdit):
 class InputWidget(QtWidgets.QWidget):
 
     returnPressed = pyqtSignal(str)
+    toggledMultiLine = pyqtSignal(bool) # bool tells if we are multiline
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -189,3 +240,18 @@ class InputWidget(QtWidgets.QWidget):
         self.parsed_field.setText(
             r'<span style="color:gray;">{!s}</span>'.format(parsed_expr)
         )
+
+    @property
+    def is_multi_line(self):
+        return not self.input_field.single_line
+
+    def toggle_multi_line(self):
+        self.input_field.toggle_multi_line()
+        if self.is_multi_line:
+            # TODO: make this a temporary overwrite, similar to the
+            # QStatusBar feature!      
+            self.set_parsed_field("Press Ctrl+Enter to calculate.")
+        else:
+            # TODO: restore previous contents!!!!!   
+            self.set_parsed_field("")
+        self.toggledMultiLine.emit(self.is_multi_line)

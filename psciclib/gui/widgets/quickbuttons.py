@@ -23,11 +23,20 @@ from PyQt5 import QtCore
 
 class QuickButtons(QtWidgets.QWidget):
 
+    input_size_toggled = pyqtSignal()
     base_units_clicked = pyqtSignal()
     best_units_clicked = pyqtSignal()
     copy_paste_clicked = pyqtSignal()
 
     # Icons.
+    __incr_input_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     os.path.pardir,
+                                     "icons", "adwaita-icon-theme-3.18.0",
+                                     "incr-input-size.svg")
+    __decr_input_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     os.path.pardir,
+                                     "icons", "adwaita-icon-theme-3.18.0",
+                                     "decr-input-size.svg")
     __base_units_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                      os.path.pardir,
                                      "icons", "adwaita-icon-theme-3.18.0",
@@ -43,6 +52,13 @@ class QuickButtons(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.input_size_btn = QtWidgets.QToolButton(parent=self)
+        self.input_size_btn.setIconSize(QtCore.QSize(24,24))
+        self.input_size_btn.setToolTip("Toggle multi-line input.")
+        self.input_size_btn.clicked.connect(self.input_size_toggled)
+        self._input_size_icon_incr = QtGui.QIcon(self.__incr_input_icon)
+        self._input_size_icon_decr = QtGui.QIcon(self.__decr_input_icon)
 
         self.base_units_btn = QtWidgets.QToolButton(parent=self)
         self.base_units_btn.setIcon(QtGui.QIcon(self.__base_units_icon))
@@ -66,6 +82,10 @@ class QuickButtons(QtWidgets.QWidget):
         # Set layout.
         layout = QtWidgets.QVBoxLayout()
 
+        layout.addWidget(self.input_size_btn)
+        self.input_size_btn.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                          QtWidgets.QSizePolicy.Fixed)
+
         layout.addWidget(self.base_units_btn)
         self.base_units_btn.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
                                           QtWidgets.QSizePolicy.Fixed)
@@ -81,3 +101,10 @@ class QuickButtons(QtWidgets.QWidget):
         layout.addStretch()
 
         self.setLayout(layout)
+
+    def set_input_toggle_btn(self, multiline):
+        self.input_size_btn.setIcon(
+            self._input_size_icon_decr
+            if multiline
+            else self._input_size_icon_incr
+        )

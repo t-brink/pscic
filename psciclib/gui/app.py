@@ -60,6 +60,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Small toolbar to the right.
         self.quick_buttons = QuickButtons(parent=self.input_area)
+        self.quick_buttons.input_size_toggled.connect(
+            self.input_widget.toggle_multi_line
+        )
+        # Update icon.
+        self.quick_buttons.set_input_toggle_btn(self.input_widget.is_multi_line)
+        self.input_widget.toggledMultiLine.connect(
+            self.quick_buttons.set_input_toggle_btn
+        )
 
         # Output controls.
         self.output_ctrls = OutputCtrls()
