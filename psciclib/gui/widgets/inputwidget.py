@@ -19,6 +19,8 @@ from PyQt5.QtCore import Qt, QSize, QMimeData, pyqtSignal
 from PyQt5.QtGui import QFontMetrics, QSyntaxHighlighter, QTextCursor, QColor
 from PyQt5 import QtWidgets
 
+from .. import tips
+
 
 class InputEdit(QtWidgets.QPlainTextEdit):
     """Line edit tailored to this app."""
@@ -43,7 +45,8 @@ class InputEdit(QtWidgets.QPlainTextEdit):
         super().__init__(parent)
 
         # Display this when empty.
-        self.setPlaceholderText("Enter expression.")
+        #self.setPlaceholderText("Enter expression.")
+        self.setPlaceholderText(tips.get_a_tip())             
 
         self.setTabChangesFocus(True)
         self.setLineWrapMode(super().NoWrap)
@@ -86,6 +89,7 @@ class InputEdit(QtWidgets.QPlainTextEdit):
                 and event.key() in (Qt.Key_Enter, Qt.Key_Return)
             ):
             self.returnPressed.emit(self.toPlainText())
+            self.setPlaceholderText(tips.get_a_tip())             
             event.accept()
         else:
             super().keyPressEvent(event)
