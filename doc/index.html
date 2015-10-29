@@ -48,5 +48,20 @@
         <td>addition</td>
       </tr>
     </table>
+    <h1>Input number systems</h1>
+    <p>To input hexadecimal, octal, or binary numbers, simply use the
+      prefixes as shown below. Real numbers are supported, using the
+      decimal point.</p>
+    <p>Roman numerals are also supported by using the
+      prefix <tt>0r</tt>. The parser is somewhat relaxed, accepting
+      IIII, VIIII, etc. There are no real numbers, only integers from
+      1 to 4999.</p>
+    <table>
+      <tr><th>prefix</th><th>number system</th><th>examples</th></tr>
+      <tr><td>0b</td><td>binary</td><td>0b1001, 0b0.1</td></tr>
+      <tr><td>0o</td><td>octal</td><td>0o730, 0o0.73</td></tr>
+      <tr><td>0x</td><td>hexadecimal</td><td>0xFF, 0x0.A</td></tr>
+      <tr><td>0r</td><td>Roman numerals</td><td>0rMMCXIX</td></tr>
+    </table>
   </body>
 </html>

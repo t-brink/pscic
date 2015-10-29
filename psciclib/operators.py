@@ -108,6 +108,49 @@ def process_realbase(s, loc, toks):
     return i+r
 
 
+class RomanInt:
+
+    numerals = ["I", "V", "X", "L", "C", "D", "M"]
+    # Populate lookup table.
+    table = {"": 0}
+    rev_table = {0: ""} # int -> roman
+    for exponent in range(3):
+        one, five, ten = numerals[exponent*2:exponent*2+3]
+        for i in range(1,10):
+            val = i * 10**exponent
+            rs = (i//5) * five + (i%5) * one
+            table[rs] = val
+            rev_table[val] = rs
+            if i % 5 == 4:
+                # subtraction
+                rs = one + (1-i//5)*five + (i//5)*ten
+                table[rs] = val
+                rev_table[val] = rs # overwrite "sloppy" numerals, e.g. 'IIII'
+    del exponent, one, five, ten, i, val, rs
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        _, thousands, hundreds, tens, ones = toks[0]
+        i = len(thousands) * 1000
+        i += cls.table[hundreds] + cls.table[tens] + cls.table[ones]
+        return sympy.Integer(i)
+
+    @classmethod
+    def int_to_roman(cls, integer):
+        # TODO: test this method!!!!    
+        if integer < 1 or integer > 4999:
+            raise ValueError("Roman numerals are only supported on the "
+                             "interval [1;4999]!")
+        retval = "M" * (integer // 1000)
+        integer %= 1000
+        retval += cls.rev_table[(integer // 100) * 100]
+        integer %= 100
+        retval += cls.rev_table[(integer // 10) * 10]
+        integer %= 10
+        retval += cls.rev_table[integer]
+        return retval
+
+
 def process_float(s, loc, toks):
     return sympy.Float(toks[0])
 

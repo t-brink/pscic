@@ -80,5 +80,5 @@ In order:
 
 * time every calculation and output the time it took somewhere (status line, ...)
 
-* hex/oct/bin input/output.  support floats.
-** support roman numerals somehow
+* hex/oct/bin input/output.  support floats.  [input done]
+** support roman numerals somehow  [input done]

@@ -58,6 +58,19 @@ octint.setParseAction(operators.process_intbase)
 binint = Group( Literal("0b") + Regex(r'[01]+') )
 binint.setParseAction(operators.process_intbase)
 
+romanint = Group(
+    Literal("0r")
+    + FollowedBy(
+        # do not accept empty string!
+        oneOf("I V X L C D M", caseless=True)
+    )
+    + Regex(r'M{0,4}', re.IGNORECASE)
+    + Regex(r'CM|CD|D?C{0,4}', re.IGNORECASE)
+    + Regex(r'XC|XL|L?X{0,4}', re.IGNORECASE)
+    + Regex(r'IX|IV|V?I{0,4}', re.IGNORECASE)
+)
+romanint.setParseAction(operators.RomanInt.process)
+
 hexreal = Group( Literal("0x") + Regex(r'[0-9a-fA-F]+')
                  + Literal(".") +  Regex(r'[0-9a-fA-F]+'))
 hexreal.setParseAction(operators.process_realbase)
@@ -73,6 +86,7 @@ variable.setParseAction(operators.Constant.process)
 
 number = (
     float_ | hexreal | octreal | binreal
+    | romanint
     | hexint | octint | binint | integer
 )
 
