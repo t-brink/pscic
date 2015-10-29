@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
@@ -31,6 +32,7 @@ from .widgets.inputwidget import InputWidget
 from .widgets.outputwidget import OutputWidget
 from .widgets.outputctrls import OutputCtrls
 from .widgets.quickbuttons import QuickButtons
+from .widgets.statusbar import StatusBar
 
 
 # TODO:            
@@ -92,8 +94,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Status bar. ##################################################
         sb = self.statusBar()
-        l = QtWidgets.QLabel("Welcome to pscic v0.0") # TODO: do something useful here
-        sb.addPermanentWidget(l)
+        self.sb = StatusBar(sb)
 
         # Other settings and decorations. ##############################
         self.setWindowTitle("pscic")
@@ -108,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calc_trigmode = None
         self.update_mode_field(*self.output_ctrls.data)
 
-    def calculate(self, expr):
+    def _calculate(self, expr):
         if not expr.strip():
             # Empty.
             self.input_widget.set_parsed_field("")
@@ -133,6 +134,12 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         # Output.
         self.output_widget.update_output(val)
+
+    def calculate(self, expr):
+        tic = time.time()
+        self._calculate(expr)
+        toc = time.time()
+        self.sb.set_walltime(toc-tic)
 
     def update_mode_field(self, exact, float_display):
         self.calc_exact = exact

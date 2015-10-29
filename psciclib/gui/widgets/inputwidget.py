@@ -29,8 +29,9 @@ class InputEdit(QtWidgets.QPlainTextEdit):
     __paren_match = {")": "(",
                      "]": "[",
                      "}": "{"}
-    __good_color = QColor(64, 224, 208)
-    __bad_color = QColor(160, 32, 240)
+    # (fg, bg)
+    __good_color = (QColor(  0,   0,   0), QColor( 64, 224, 208))
+    __bad_color =  (QColor(255, 255, 255), QColor(160,  32, 240))
 
     # The string contains the contents of the widget.
     returnPressed = pyqtSignal(str)
@@ -107,7 +108,8 @@ class InputEdit(QtWidgets.QPlainTextEdit):
                 # found one.
                 matched = (char2 == self.__paren_match[char])
             # Now highlight.
-            bg_color = self.__good_color if matched else self.__bad_color
+            fg_color, bg_color = \
+                self.__good_color if matched else self.__bad_color
             selections = []
             if start_paren is not None:
                 start_sel = QtWidgets.QTextEdit.ExtraSelection()
@@ -116,6 +118,7 @@ class InputEdit(QtWidgets.QPlainTextEdit):
                 start_sel.cursor.setPosition(start_paren)
                 start_sel.cursor.movePosition(QTextCursor.NextCharacter,
                                               QTextCursor.KeepAnchor)
+                start_sel.format.setForeground(fg_color)
                 start_sel.format.setBackground(bg_color)
                 selections.append(start_sel)
             end_sel = QtWidgets.QTextEdit.ExtraSelection()
@@ -124,6 +127,7 @@ class InputEdit(QtWidgets.QPlainTextEdit):
             end_sel.cursor.setPosition(end_paren)
             end_sel.cursor.movePosition(QTextCursor.NextCharacter,
                                         QTextCursor.KeepAnchor)
+            end_sel.format.setForeground(fg_color)
             end_sel.format.setBackground(bg_color)
             selections.append(end_sel)
             self.setExtraSelections(selections)
