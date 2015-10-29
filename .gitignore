@@ -1,3 +1,7 @@
 *~
 *.pyc
 __pycache__
+
+# I keep interesting icons on my computer in this directory. Those are not
+# used right now and should therefore not be redistributed ATM.
+/ICONS

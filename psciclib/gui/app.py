@@ -161,8 +161,9 @@ class MainWindow(QtWidgets.QMainWindow):
 def main(argv):
     app = QtWidgets.QApplication(argv)
 
+    # TODO: use python packaging facilities to get the path      
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             "logo-path.svg")
+                             "icons", "logo-path.svg")
     icon = QtGui.QIcon(icon_path)
     app.setWindowIcon(icon)
 
