@@ -1,0 +1,21 @@
+* multiplication works!
+
+* addition fails for symbols, if both sides do not have the same
+  dimension; problem is, that the unit is implicit in the x:
+
+  1cm - x = 0   =>   x is obviously 1cm
+
+* exponents fail for symbolic: (1cm)^x raises an exception.
+  everything else works. This is a corner case, but would be nice to
+  have
+
+* matrix/solve: sympy wants to convert to a sympy object, which fails.
+  we need to turn the unit into a symbol-like sympy-object
+
+** This object will let sympy handle the magnitude part and pint the
+   unit part and will raise an exception if the unit is incompatible
+
+** The magnitude should not be part of this Unit object, this will
+   simplify a lot of things.  Started implementing in psciclib.unitbridge.
+
+** This object may be the solution to all the above problems.
