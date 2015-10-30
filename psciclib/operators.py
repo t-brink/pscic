@@ -670,7 +670,7 @@ class Unit(Constant):
             value = units.ureg(toks[0])
         except units.UndefinedUnitError:
             raise UnknownUnitError(toks[0])
-        name = "{:~}".format(value) # includes a leading 1 :-(
+        name = "{:~}".format(value).lstrip("1").lstrip() # remove leading 1
         return cls(name, value)
 
 
@@ -679,7 +679,6 @@ class Matrix(Operator):
     @classmethod
     def process(cls, s, loc, toks):
         if not toks:
-            print("HIIIII")
             return cls(0, 0, None)
         rows = len(toks[0])
         cols = len(toks[0][0])
