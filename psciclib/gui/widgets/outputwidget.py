@@ -32,13 +32,26 @@ class OutputWidget(QtWidgets.QWidget):
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
         self.output_field.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        self.output_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                        QtWidgets.QSizePolicy.Expanding)
+
+        self.output_scrollarea = QtWidgets.QScrollArea()
+        self.output_scrollarea.setWidget(self.output_field)
+        self.output_scrollarea.setWidgetResizable(True)
+        self.output_scrollarea.setVerticalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded
+        )
+        self.output_scrollarea.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarAsNeeded
+        )
+        self.output_scrollarea.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        # Make it invisible
+        self.output_scrollarea.setFrameStyle(QtWidgets.QFrame.NoFrame)
 
         # Layout.
         layout = QtWidgets.QVBoxLayout()
 
-        layout.addWidget(self.output_field)
-        self.output_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                        QtWidgets.QSizePolicy.Expanding)
+        layout.addWidget(self.output_scrollarea)
 
         self.setLayout(layout)
 

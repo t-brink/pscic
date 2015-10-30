@@ -40,6 +40,15 @@ In order:
 * support units [should work in general, see below]
 ** temperature (non-K) may be harder to get right in a nice way
    (semantics are not always clear).
+*** make °C / °F special syntax that immediately converts to kelvin
+*** write a warning, because the semantics of 12°C+1°C are not clear!
+*** make extra units (degC/degF) that are temperature differences and
+    are converted to ΔK (no offset); also warn about this because it is
+    not intuitive!
+*** The warning stuff can be implemented by passing a "Hint" object around
+    when evaluating the expression. The return value will then be a tuple
+    of the actual results plus some informational data that can be displayed
+    to the user
 ** Parse multiplied units like Js = J*s; this may be ambiguous! Be careful!
 ** get a list of all supported unit strings: ureg._units.keys()
 ** some short units are bad special case them: 

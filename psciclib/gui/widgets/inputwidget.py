@@ -44,13 +44,13 @@ class InputEdit(QtWidgets.QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        # Compat for old Qt: make setPlaceholderText a no-op.
+        if not hasattr(self, "setPlaceholderText"):
+            self.setPlaceholderText = lambda *args: None
+
         # Display this when empty.
         #self.setPlaceholderText("Enter expression.")
-        try:
-            self.setPlaceholderText(tips.get_a_tip())             
-        except AttributeError:
-            # Old Qt version.
-            pass
+        self.setPlaceholderText(tips.get_a_tip())             
 
         self.setTabChangesFocus(True)
         self.setLineWrapMode(super().NoWrap)
@@ -93,11 +93,7 @@ class InputEdit(QtWidgets.QPlainTextEdit):
                 and event.key() in (Qt.Key_Enter, Qt.Key_Return)
             ):
             self.returnPressed.emit(self.toPlainText())
-            try:
-                self.setPlaceholderText(tips.get_a_tip())             
-            except AttributeError:
-                # Old Qt version.
-                pass
+            self.setPlaceholderText(tips.get_a_tip())             
             event.accept()
         else:
             super().keyPressEvent(event)
@@ -195,6 +191,38 @@ class InputEdit(QtWidgets.QPlainTextEdit):
             self.setExtraSelections(selections)
 
 
+class ElidingLabel(QtWidgets.QLabel):
+    """A QLabel which elides text with an ellipsis if it is too long."""
+
+    def __init__(self, text="", prefix="", suffix="",
+                 elide=Qt.ElideRight, parent=None):
+        super().__init__(text, parent)
+        self._full_text = text
+        self._prefix = prefix # those can be used for "<span></span>"
+        self._suffix = suffix # because they are not elided!
+        self._elide = elide
+        self._font_metrics = QFontMetrics(self.font())
+        self.setText(text)
+
+    def setText(self, text):
+        self._full_text = text
+        s = self._font_metrics.elidedText(text, self._elide, self.width())
+        if s != text:
+            # Show tooltip.
+            # TODO: linebreaks!!!!!!!  
+            self.setToolTip(text)
+        else:
+            self.setToolTip("")
+        super().setText(self._prefix + s + self._suffix)
+
+    def text(self):
+        return self._full_text
+
+    def resizeEvent(self, event):
+        # Re-calculate elision.
+        self.setText(self._full_text)
+
+
 class InputWidget(QtWidgets.QWidget):
 
     returnPressed = pyqtSignal(str)
@@ -208,7 +236,10 @@ class InputWidget(QtWidgets.QWidget):
         self.input_field.returnPressed.connect(self.returnPressed)
 
         # Parsed expression is displayed here.
-        self.parsed_field = QtWidgets.QLabel(parent=self)
+        self.parsed_field = ElidingLabel(prefix='<span style="color:gray;">',
+                                         suffix='</span>',
+                                         elide=Qt.ElideLeft,
+                                         parent=self)
         self.parsed_field.setTextInteractionFlags(
             Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
         )
@@ -224,7 +255,7 @@ class InputWidget(QtWidgets.QWidget):
                                        QtWidgets.QSizePolicy.Fixed)
 
         layout.addWidget(self.parsed_field, 1, 0)
-        self.parsed_field.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+        self.parsed_field.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
                                         QtWidgets.QSizePolicy.Fixed)
 
         layout.addWidget(self.mode_field, 1, 1)
@@ -249,9 +280,7 @@ class InputWidget(QtWidgets.QWidget):
         )
 
     def set_parsed_field(self, parsed_expr):
-        self.parsed_field.setText(
-            r'<span style="color:gray;">{!s}</span>'.format(parsed_expr)
-        )
+        self.parsed_field.setText(str(parsed_expr))
 
     @property
     def is_multi_line(self):
