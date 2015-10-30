@@ -21,7 +21,9 @@ import sympy
 
 from .exceptions import (UnknownFunctionError,
                          UnknownConstantError,
-                         UnknownUnitError)
+                         UnknownUnitError,
+                         WrongNumberOfArgumentsError,
+                         VariableLengthRowsError)
 from . import units
 
 
@@ -670,4 +672,40 @@ class Unit(Constant):
             raise UnknownUnitError(toks[0])
         name = "{:~}".format(value) # includes a leading 1 :-(
         return cls(name, value)
+
+
+class Matrix(Operator):
+
+    @classmethod
+    def process(cls, s, loc, toks):
+        if not toks:
+            print("HIIIII")
+            return cls(0, 0, None)
+        rows = len(toks[0])
+        cols = len(toks[0][0])
+        if any(len(col) != cols
+               for col in toks[0]):
+            raise VariableLengthRowsError(
+                "Rows of matrix have different lengths"
+            )
+        return cls(rows, cols, toks[0].asList())
+
+    def __init__(self, rows, cols, data):
+        self.rows = rows
+        self.cols = cols
+        self.data = data
+
+    def evaluate(self, **kwargs):
+        evaluated = [self._eval(*row)
+                     for row in self.data]
+        return sympy.Matrix(evaluated)
+
+    def __str__(self):
+        return ("["
+                + "; ".join(
+                    ", ".join(str(cell)
+                              for cell in row)
+                    for row in self.data
+                )
+                + "]")
 

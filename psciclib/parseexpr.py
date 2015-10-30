@@ -103,18 +103,28 @@ factop = Literal("!")
 # Expression ###########################################################
 expr = Forward()
 
+# Matrices and vectors.
+matrix_sep = Suppress( Literal(",") )
+matrix_rowsep = Suppress( Literal(";") )
+matrix_row = Group( expr + ZeroOrMore( matrix_sep + expr ) )
+matrix = Group(
+    Suppress('[')
+    + Optional( matrix_row + ZeroOrMore( matrix_rowsep + matrix_row ) )
+    + Suppress(']')
+)
+matrix.setParseAction(operators.Matrix.process)
+
 # Term.
 lpar = Suppress('(')
 rpar = Suppress(')')
-term = operand | ( lpar + expr + rpar )
+term = operand | ( lpar + expr + rpar ) | matrix
 
 # Function.
-# TODO: multiple args separated by comma/semicolon(which one?)
-#                  pro                contra
-#     comma:   easy, nice look     usage as decimal point, thousand separator
-# semicolon:   no other usage      harder to type
+argsep = Suppress( oneOf(", ;") )
 func_term = Forward()
-func_expr = Group( identifier + lpar + expr + rpar )
+func_expr = Group(
+    identifier + lpar + expr + ZeroOrMore( argsep + expr ) + rpar
+)
 func_expr.setParseAction(operators.Function.process)
 func_term <<= ( func_expr | term )
 

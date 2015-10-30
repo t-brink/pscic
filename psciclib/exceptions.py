@@ -52,3 +52,35 @@ class UnknownUnitError(Error):
 
     def __repr__(self):
         return "UnknownUnitError({!r})".format(self.unitname)
+
+
+class WrongNumberOfArgumentsError(Error):
+    """Wrong number of arguments for function."""
+    def __init__(self, funcname, n_args, min_args, max_args):
+        self.funcname = funcname
+        self.n_args = n_args
+        self.min_args = min_args
+        self.max_args = max_args
+
+    def __str__(self):
+        if self.min_args == self.max_args:
+            return "Function {} takes {} arguments, not {}.".format(
+                self.funcname, self.min_args, self.n_args
+            )
+        elif self.n_args < self.min_args:
+            return "Function {} takes at least {} arguments, {} given.".format(
+                self.funcname, self.min_args, self.n_args
+            )
+        else:
+            return "Function {} takes at most {} arguments, {} given.".format(
+                self.funcname, self.max_args, self.n_args
+            )
+
+    __repr__ = __str__
+
+
+class VariableLengthRowsError(Error):
+    """Matrix has rows of different length."""
+    pass
+
+

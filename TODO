@@ -7,7 +7,10 @@ In order:
 * support functions
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
-** handle complex numbers! i.e. support them but go to float as soon as possible!
+** multiple arguments
+*** parsing [done]
+*** validating (how many args does this func take?)
+*** evaluating (easy?)
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint
@@ -67,7 +70,13 @@ In order:
 *** needs to auto-solve for equalities (and inequalities) [equalities done]
 ** auto-plot?
 
-* matrices/vectors (numpy)
+* matrices/vectors
+** parsing is done
+** sympy can handle it
+** but: there are no vectors, only row matrices
+   this is not user-friendly, as we need to transpose those sometimes
+   so: auto-transpose them on evaluation!
+** needs more support and error checking
 
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
