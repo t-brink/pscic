@@ -46,7 +46,11 @@ class InputEdit(QtWidgets.QPlainTextEdit):
 
         # Display this when empty.
         #self.setPlaceholderText("Enter expression.")
-        self.setPlaceholderText(tips.get_a_tip())             
+        try:
+            self.setPlaceholderText(tips.get_a_tip())             
+        except AttributeError:
+            # Old Qt version.
+            pass
 
         self.setTabChangesFocus(True)
         self.setLineWrapMode(super().NoWrap)
@@ -89,7 +93,11 @@ class InputEdit(QtWidgets.QPlainTextEdit):
                 and event.key() in (Qt.Key_Enter, Qt.Key_Return)
             ):
             self.returnPressed.emit(self.toPlainText())
-            self.setPlaceholderText(tips.get_a_tip())             
+            try:
+                self.setPlaceholderText(tips.get_a_tip())             
+            except AttributeError:
+                # Old Qt version.
+                pass
             event.accept()
         else:
             super().keyPressEvent(event)
