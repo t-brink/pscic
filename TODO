@@ -55,7 +55,7 @@ In order:
     expression is undefined (division by zero etc.)
 *** Perhaps one can force sympy to raise exceptions instead, which would be
     better (hint panel is still a good idea)
-** a panel which shores stored custom variables for the session (also one
+** a panel which shows stored custom variables for the session (also one
    should have the ability to define their own variables/functions)
 ** a unit/constant/function/symbol selector (instead of a keypad-thingy)
 ** document every function, unit, symbol, variable and (optionally) show

@@ -37,15 +37,6 @@ from .widgets.quickbuttons import QuickButtons
 from .widgets.statusbar import StatusBar
 
 
-# TODO:            
-# * Put parts of the main window into separate custom widgets to reduce
-#   clutter
-# ** input widget (linedit + parsed expr + modeline)
-# ** output widget (output + explanation + pretty printing methods)
-# *** this one should actually pretty-print the output (MathML/LaTeX/...)
-# ** output modifying widets (exact, normal/sci/eng/simp, ...)
-
-
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -95,6 +86,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Menu bar. ####################################################
         menu_bar = self.menuBar()
+
+        # File menu.
+        self.menu_file = menu_bar.addMenu("&File")
+
+        quit_ = self.menu_file.addAction("&Quit")
+        quit_.triggered.connect(QtWidgets.QApplication.quit)
 
         # Help menu.
         self.menu_help = menu_bar.addMenu("&Help")
