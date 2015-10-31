@@ -545,3 +545,14 @@ class TestEquality(unittest.TestCase):
         self.assertEqual(len(solutions), 2)
         self.assertAlmostEqual(solutions[0], -4)
         self.assertAlmostEqual(solutions[1], 1)
+
+    def test_with_units(self):
+        self.assertEqual(pe("1cm = 1cm"), True)
+        self.assertEqual(pe("1in = 2.54cm"), True)
+        self.assertEqual(pe("1cm = 2cm"), False)
+        self.assertEqual(pe("1cm = 1in"), False)
+        self.assertEqual(pe("1cm = 1kg"), False)
+
+    def test_solve_with_units(self):
+        # Does not work ATM
+        pass

@@ -18,6 +18,7 @@ import collections
 
 from pyparsing import ParseResults
 import sympy
+import pint
 
 from .exceptions import (UnknownFunctionError,
                          UnknownConstantError,
@@ -65,26 +66,26 @@ class Wrapper:
     def __str__(self):
         return str(self.cmd)
 
-    def evaluate_asis(self, **kwargs):
+    def evaluate_asis(self):
         """Evaluate, not converting explicitly to float."""
-        return self.cmd.evaluate(**kwargs)
+        return self.cmd.evaluate()
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         """Evaluate human-readable.
 
         That means, convert to float where not already float or integer.
 
         """
-        evaluated = self.evaluate_asis(**kwargs)
+        evaluated = self.evaluate_asis()
         return _apply(evaluated, "evalf", (), {},
                       exclude_classes=(sympy.numbers.Integer,
                                        sympy.numbers.Float,
                                        bool))
 
-    def evaluate_simplify(self, **kwargs):
+    def evaluate_simplify(self):
         """Evaluate, not converting to float, but trying to simplify
         expression."""
-        evaluated = self.evaluate_asis(**kwargs)
+        evaluated = self.evaluate_asis()
         return _apply(evaluated, "simplify", (), {},
                       exclude_classes=(bool,))
 
@@ -164,14 +165,7 @@ def process_float(s, loc, toks):
 class Operator(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def evaluate(self, **kwargs):
-        # The kwargs give values to variables!
-        # TODO: the above is stupid, use sympy's subs() method at the end!!!   
-        #
-        #TODO for all subclasses: handle symbolic variable by not     
-        #actually evaluating!                                         
-        #
-        #TODO: also try to simplify expressions with variables in it  
+    def evaluate(self):
         pass
 
     @classmethod
@@ -186,16 +180,14 @@ class Operator(metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def _eval(*args, **kwargs):
+    def _eval(*args):
         """For every arg, return the evaluated form.
 
         If an arg is an instance of Operator call .evaluate(),
         otherwise pass it back as is.
 
-        Any keyword arg is interpreted as assigning a value to a variable.
-
         """
-        return tuple((arg.evaluate(**kwargs)
+        return tuple((arg.evaluate()
                       if isinstance(arg, Operator)
                       else arg)
                      for arg in args)
@@ -215,9 +207,9 @@ class Expression(Operator):
     def __str__(self):
         return str(self.expr)
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         """Evaluate the expression."""
-        retval, = self._eval(self.expr, **kwargs)
+        retval, = self._eval(self.expr)
         return retval
 
 
@@ -237,9 +229,9 @@ class Conversion(Operator):
     def __str__(self):
         return "{!s} to {!s}".format(self.expr, self.to_unit)
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         """Evaluate the expression and convert to requested unit."""
-        expr, to_unit = self._eval(self.expr, self.to_unit, **kwargs)
+        expr, to_unit = self._eval(self.expr, self.to_unit)
         if isinstance(expr, unitbridge.Quantity):
             # TODO: is the extra sympify necessary???
             expr = units.Q_(sympy.sympify(expr.quantity.magnitude),
@@ -288,18 +280,22 @@ class Equality(Operator):
     def __str__(self):
         return "{!s} = {!s}".format(self.lhs, self.rhs)
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         """Try to solve."""
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         true, false = sympy.S.true, sympy.S.false
-        eq = sympy.Eq(lhs, rhs)
-        # Check if we can already say the expression is true or false.
-        if eq is true or eq is false:
-            return bool(eq)
-        # Try harder.
-        eq = eq.simplify()
-        if eq is true or eq is false:
-            return bool(eq)
+        try:           
+            eq = sympy.Eq(lhs, rhs)
+            # Check if we can already say the expression is true or false.
+            if eq is true or eq is false:
+                return bool(eq)
+            # Try harder.
+            eq = eq.simplify()
+            if eq is true or eq is false:
+                return bool(eq)
+        except ValueError:# (ValueError, pint.DimensionalityError):
+            # Units don't fit, not equal.
+            return False
         # Try to solve for x.
         try:
             solutions = sympy.solve(eq, _X)
@@ -367,40 +363,40 @@ class InfixLeftSymbol(InfixSymbol):
 class Plus(InfixLeftSymbol):
     symbol = "+"
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return lhs + rhs
 
 
 class Minus(InfixLeftSymbol):
     symbol = "-"
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return lhs - rhs
 
 
 class Times(InfixLeftSymbol):
     symbol = "·"
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return lhs * rhs
 
 
 class Divide(InfixLeftSymbol):
     symbol = "÷"
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return lhs / rhs
 
 
 class IntDivide(InfixLeftSymbol):
     symbol = "//"
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return sympy.floor(lhs / rhs)
 
 
@@ -426,8 +422,8 @@ class Exponent(InfixSymbol):
             rhs = toks[0][2]
         return cls(lhs, rhs)
 
-    def evaluate(self, **kwargs):
-        lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
+    def evaluate(self):
+        lhs, rhs = self._eval(self.lhs, self.rhs)
         return lhs ** rhs
 
 
@@ -454,8 +450,8 @@ class PostfixSymbol(SymbolOperator):
 class Factorial(PostfixSymbol):
     symbol = "!"
 
-    def evaluate(self, **kwargs):
-        lhs, = self._eval(self.lhs, **kwargs)
+    def evaluate(self):
+        lhs, = self._eval(self.lhs)
         return sympy.factorial(lhs)
 
 
@@ -481,16 +477,16 @@ class PrefixSymbol(SymbolOperator):
 class MinusSign(PrefixSymbol):
     symbol = "-"
 
-    def evaluate(self, **kwargs):
-        rhs, = self._eval(self.rhs, **kwargs)
+    def evaluate(self):
+        rhs, = self._eval(self.rhs)
         return -rhs
 
 
 class PlusSign(PrefixSymbol):
     symbol = "+"
 
-    def evaluate(self, **kwargs):
-        rhs, = self._eval(self.rhs, **kwargs)
+    def evaluate(self):
+        rhs, = self._eval(self.rhs)
         return rhs
 
 class Function(Operator):
@@ -602,8 +598,8 @@ class Function(Operator):
     def __str__(self):
         return "{}({!s})".format(self.fn_s, self.arg)
 
-    def evaluate(self, **kwargs):
-        arg, = self._eval(self.arg, **kwargs)
+    def evaluate(self):
+        arg, = self._eval(self.arg)
         if (self.unit_support is True
             or not isinstance(arg, unitbridge.Quantity)):
             return self.fn(arg)
@@ -649,7 +645,7 @@ class Constant(Operator):
     def __str__(self):
         return str(self.name)
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         return self.value
 
 
@@ -691,7 +687,7 @@ class Matrix(Operator):
         self.cols = cols
         self.data = data
 
-    def evaluate(self, **kwargs):
+    def evaluate(self):
         evaluated = [self._eval(*row)
                      for row in self.data]
         return sympy.Matrix(evaluated)

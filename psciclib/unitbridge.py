@@ -22,15 +22,6 @@ from sympy.core.decorators import call_highest_priority
 from .units import ureg, Q_
 
 
-# TODO:
-#   * seems to work surprisingly well for so little code
-#   * needs __add__ etc. methods to do the right thing (i.e. whatever pint  
-#     does). those should return Unit, not Q_!                              
-#   * handle this kind of object in the UI parts!
-#   * sometimes, the expressions are not evaluated, e.g.                    
-#     sin(3 * cm / (5 * in)) becomes sin((3/5 cm / in))                     
-
-
 class Quantity(AtomicExpr):
     is_positive = True    # make sqrt(m**2) --> m
     is_commutative = True
@@ -68,6 +59,61 @@ class Quantity(AtomicExpr):
         if isinstance(unit, self.__class__):
             unit = unit.quantity
         return self.__class__(self.quantity.to(unit))
+
+    def __abs__(self):
+        return self.__class__(Q_(sympy.Abs(self.magnitude), self.units))
+
+    @call_highest_priority("__radd__")
+    def __add__(self, other):
+        if isinstance(other, sympy.Basic) and other.is_number:
+            # Adding only works with the same units!
+            q = self.quantity.to(ureg.dimensionless).magnitude
+            return q + other
+        elif isinstance(other, self.__class__):
+            # Pint can handle summing to physical quantities.
+            return self.__class__(self.quantity + other.quantity)
+        else:
+            # Seems to be something symbolic, let sympy handle it.
+            return super().__add__(other)
+
+    @call_highest_priority("__add__")
+    def __radd__(self, other):
+        if isinstance(other, sympy.Basic) and other.is_number:
+            # Adding only works with the same units!
+            q = self.quantity.to(ureg.dimensionless).magnitude
+            return other + q
+        elif isinstance(other, self.__class__):
+            # Pint can handle summing to physical quantities.
+            return self.__class__(other.quantity + self.quantity)
+        else:
+            # Seems to be something symbolic, let sympy handle it.
+            return super().__radd__(other)
+
+    @call_highest_priority("__rsub__")
+    def __sub__(self, other):
+        if isinstance(other, sympy.Basic) and other.is_number:
+            # Adding only works with the same units!
+            q = self.quantity.to(ureg.dimensionless).magnitude
+            return q - other
+        elif isinstance(other, self.__class__):
+            # Pint can handle summing to physical quantities.
+            return self.__class__(self.quantity - other.quantity)
+        else:
+            # Seems to be something symbolic, let sympy handle it.
+            return super().__sub__(other)
+
+    @call_highest_priority("__sub__")
+    def __rsub__(self, other):
+        if isinstance(other, sympy.Basic) and other.is_number:
+            # Adding only works with the same units!
+            q = self.quantity.to(ureg.dimensionless).magnitude
+            return other - q
+        elif isinstance(other, self.__class__):
+            # Pint can handle summing to physical quantities.
+            return self.__class__(other.quantity - self.quantity)
+        else:
+            # Seems to be something symbolic, let sympy handle it.
+            return super().__rsub__(other)
 
     @call_highest_priority("__rmul__")
     def __mul__(self, other):
@@ -136,8 +182,11 @@ class Quantity(AtomicExpr):
     def __eq__(self, other):
         if isinstance(other, (int, float, complex, Q_)):
             return self.quantity == other
+        elif isinstance(other, self.__class__):
+            return self.quantity == other.quantity
         else:
-            return super().__eq__(other)
+            False
+            #return super().__eq__(other)
 
     def __hash__(self):
         return hash(
