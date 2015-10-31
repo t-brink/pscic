@@ -1,5 +1,19 @@
 In order:
 
+* BEFORE ADVERTISING IT TO THE PUBLIC:
+** move all initialization code in modules into functions
+   (that is for code like downloading currency data)
+*** not for stuff that is needed, like monkey-patching pint for sympy
+*** this includes:
+**** psciclib.paths: create cache/preference/... directories
+**** psciclib.units: download and parse currency data
+** call that code when starting the UI (and when running tests,
+   although with download disabled!)
+** make the currency download optional and ask the user (data
+   protection and privacy reasons)
+*** ship a .xml file, so that the currency at least exists?
+** the above needs a config file and preference dialog
+
 * license [done]
 ** some about dialog and "licence" command which outputs all
    licences of dependencies, too

@@ -25,6 +25,7 @@ import pyparsing
 from psciclib import parseexpr
 from psciclib.exceptions import Error
 from psciclib.units import Q_
+from psciclib import unitbridge
 
 while True:
     try:
@@ -46,4 +47,6 @@ while True:
     if isinstance(val, Q_):
         # pretty-print units.
         val = "{:P~}".format(val)
-    print("=", val)
+    elif isinstance(val, unitbridge.Quantity):
+        val = "{:P~}".format(val.quantity)
+    print("=", str(val))

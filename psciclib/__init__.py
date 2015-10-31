@@ -16,3 +16,14 @@
 from . import version
 
 __version__ = version.version
+
+
+# Make sure to run necessary init code.
+def init():
+    # Set up currencies.
+    from . import units
+    units._init()
+    # Monkey-patch pint Quantity for sympy compatibility.
+    from . import unitbridge
+    unitbridge._init()
+init()

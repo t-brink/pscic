@@ -25,6 +25,7 @@ from .exceptions import (UnknownFunctionError,
                          WrongNumberOfArgumentsError,
                          VariableLengthRowsError)
 from . import units
+from . import unitbridge
 
 
 _X = sympy.Symbol("x")
@@ -95,12 +96,15 @@ def process_int(s, loc, toks):
 
 __bases = {"0x": 16, "0o": 8, "0b": 2}
 def process_intbase(s, loc, toks):
+    """Process a string representation of an integer in a base other than 10."""
     base = __bases[toks[0][0]]
     i = int(toks[0][1], base)
     return sympy.Integer(i)
 
 
 def process_realbase(s, loc, toks):
+    """Process a string representation of an real number in a base other
+    than 10."""
     int_part = toks[0][0]
     base = __bases[toks[0][0]]
     i = sympy.Integer(int(toks[0][1], base))
@@ -236,9 +240,13 @@ class Conversion(Operator):
     def evaluate(self, **kwargs):
         """Evaluate the expression and convert to requested unit."""
         expr, to_unit = self._eval(self.expr, self.to_unit, **kwargs)
-        if not isinstance(expr, units.Q_):
+        if isinstance(expr, unitbridge.Quantity):
+            # TODO: is the extra sympify necessary???
+            expr = units.Q_(sympy.sympify(expr.quantity.magnitude),
+                            expr.quantity.units)
+        elif not isinstance(expr, units.Q_):
             expr = units.Q_(expr) # dimensionless
-        return expr.to(to_unit)
+        return expr.to(to_unit.quantity)
 
 
 class Equality(Operator):
@@ -671,7 +679,12 @@ class Unit(Constant):
         except units.UndefinedUnitError:
             raise UnknownUnitError(toks[0])
         name = "{:~}".format(value).lstrip("1").lstrip() # remove leading 1
-        return cls(name, value)
+        return cls(name, unitbridge.Quantity(value))
+
+    @classmethod
+    def process_dimensionless(cls, s, loc, toks):
+        name = "1"
+        return cls(name, unitbridge.Quantity(units.ureg.dimensionless))
 
 
 class Matrix(Operator):

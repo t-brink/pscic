@@ -178,7 +178,7 @@ single_unit = identifier.copy()
 single_unit.setParseAction(operators.Unit.process)
 
 literal_one = Literal("1")
-literal_one.setParseAction(lambda _: Q_(1))
+literal_one.setParseAction(operators.Unit.process_dimensionless)
 
 # The one allows for example for 1/h = h^-1.
 unit_term = single_unit | literal_one | ( lpar + unit_expr + rpar )

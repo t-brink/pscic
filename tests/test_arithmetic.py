@@ -477,6 +477,9 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
         self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
         self.assertEqual(pe("1/in to 1/cm"), (1 / ureg.inch).to(1/ureg.centimeter))
+        self.assertEqual(pe("2*in to cm"), 2*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("2in to cm"), 2*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("2/in to 1/cm"), (2 / ureg.inch).to(1/ureg.centimeter))
 
     def test_null_conversion(self):
         self.assertEqual(pe("7124 to 1"), 7124)
@@ -486,6 +489,10 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(pe("sqrt(1*m^2)"), 1*ureg.meter)
         # Weird, but must be legal.
         self.assertEqual(pe("1m^pi"), 1*ureg.meter**math.pi)
+        self.assertAlmostEqual(pe("2^(2m/3in)"),
+                               2 ** (2*ureg.meter / (3*ureg.inch)))
+        self.assertAlmostEqual(pe("(2m)^(2m/3in)"),
+                               (2*ureg.meter) ** (2*ureg.meter / (3*ureg.inch)))
 
 
 class TestFunctions(unittest.TestCase):

@@ -23,13 +23,12 @@ ureg.default_format = "~" # print abbreviations by default.
 Q_ = ureg.Quantity
 UndefinedUnitError = pint.UndefinedUnitError
 
-# Add currencies to registry.
-# TODO: put into init function to be called from someplace
-# TODO: error handling
-def init():
+def _init():
+    # Add currencies to registry.
+    # TODO: make the download thing optional! ship default .xml!
+    # TODO: error handling
     data = currency.get_exchange_rates()
     ureg.define("EUR = [currency]")
     for cur, rate in data["rates"].items():
         ureg.define("{} = {} * EUR".format(cur, 1/rate))
-init()
 
