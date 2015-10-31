@@ -491,8 +491,16 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(pe("1m^pi"), 1*ureg.meter**math.pi)
         self.assertAlmostEqual(pe("2^(2m/3in)"),
                                2 ** (2*ureg.meter / (3*ureg.inch)))
-        self.assertAlmostEqual(pe("(2m)^(2m/3in)"),
-                               (2*ureg.meter) ** (2*ureg.meter / (3*ureg.inch)))
+        weird1 = pe("(2m)^(2m/3in)")
+        ref1 = (2*ureg.meter) ** (2*ureg.meter / (3*ureg.inch))
+        self.assertAlmostEqual(weird1.magnitude, ref1.magnitude)
+        self.assertEqual(weird1.units, ref1.units)
+
+    def test_addition(self):
+        self.assertAlmostEqual(pe("1cm + 1in to m"),
+                               (ureg.cm + ureg.inch).to(ureg.meter))
+        self.assertAlmostEqual(pe("1cm - 1in to m"),
+                               (ureg.cm - ureg.inch).to(ureg.meter))
 
 
 class TestFunctions(unittest.TestCase):

@@ -428,22 +428,7 @@ class Exponent(InfixSymbol):
 
     def evaluate(self, **kwargs):
         lhs, rhs = self._eval(self.lhs, self.rhs, **kwargs)
-        # Exponentiation of units does not play nice with pint/sympy,
-        # so fix that.
-        # TODO: the exponent could be a sympy symbol, that is not yet
-        # supported     
-        if isinstance(lhs, units.Q_):
-            # Try to make rhs into a float.
-            try:
-                unit_exponent = float(rhs)
-            except TypeError:
-                raise ValueError("Exponents for units must be real numbers, "
-                                 "not {}.".format(type(rhs)))
-            m = lhs.magnitude
-            u = lhs.units
-            return units.Q_(m ** rhs, u ** unit_exponent)
-        else:
-            return lhs ** rhs
+        return lhs ** rhs
 
 
 class PostfixSymbol(SymbolOperator):
@@ -511,8 +496,7 @@ class PlusSign(PrefixSymbol):
 class Function(Operator):
 
     # If the function can handle units other than dimensionless,
-    # unit_support should be a function to be applied to the unit,
-    # otherwise False.  If the function already handles units, use True.
+    # unit_support should True, otherwise False.
     _D = collections.namedtuple("_D", ["canonical_name", "fn", "unit_support"])
 
     _functions = {
@@ -569,8 +553,8 @@ class Function(Operator):
         "log10": _D("log10", lambda x: sympy.log(x, 10), False),
         "log2": _D("log2", lambda x: sympy.log(x, 2), False),
         # Square root.
-        "sqrt": _D("√", sympy.sqrt, lambda u: u**0.5),
-        "√": _D("√", sympy.sqrt, lambda u: u**0.5),
+        "sqrt": _D("√", lambda x: x**sympy.Rational(1/2), True),
+        "√": _D("√", lambda x: x**sympy.Rational(1/2), True),
         # Error function.
         "erf": _D("erf", sympy.erf, False),
         "erfc": _D("erfc", sympy.erfc, False),
@@ -620,14 +604,14 @@ class Function(Operator):
 
     def evaluate(self, **kwargs):
         arg, = self._eval(self.arg, **kwargs)
-        if self.unit_support is True or not isinstance(arg, units.Q_):
+        if (self.unit_support is True
+            or not isinstance(arg, unitbridge.Quantity)):
             return self.fn(arg)
         elif self.unit_support is False:
-            return self.fn(arg.to("dimensionless"))
+            q = arg.convert_to("dimensionless")
+            return self.fn(q.magnitude)
         else:
-            m = arg.magnitude
-            u = arg.units
-            return units.Q_(self.fn(m), self.unit_support(u))
+            raise RuntimeError("This must not happen and is a bug (YuU0eJ).")
 
 
 class Constant(Operator):

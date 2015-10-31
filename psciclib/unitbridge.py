@@ -56,6 +56,19 @@ class Quantity(AtomicExpr):
         # TODO: parenthesis :-(
         return "(" + str(self) + ")"
 
+    @property
+    def magnitude(self):
+        return self.quantity.magnitude
+
+    @property
+    def units(self):
+        return self.quantity.units
+
+    def convert_to(self, unit):
+        if isinstance(unit, self.__class__):
+            unit = unit.quantity
+        return self.__class__(self.quantity.to(unit))
+
     @call_highest_priority("__rmul__")
     def __mul__(self, other):
         if isinstance(other, self.__class__):
@@ -96,11 +109,17 @@ class Quantity(AtomicExpr):
 
     @call_highest_priority("__rpow__")
     def __pow__(self, other):
-        if isinstance(other, (sympy.Rational, sympy.Float)):
+        # Try to unwrap a quantity.
+        if isinstance(other, self.__class__):
+            other = other.quantity.to(ureg.dimensionless).magnitude
+        # Convert number to float if possible.
+        if (isinstance(other, sympy.Basic)
+            and other.is_number and other.is_real and other.is_finite):
             exp = float(other)
         elif isinstance(other, (int, float)):
             exp = other
         else:
+            # Raising to the power of something weird, stay symbolic.
             return super().__pow__(other)
         return self.__class__(self.quantity ** exp)
 
@@ -126,6 +145,10 @@ class Quantity(AtomicExpr):
              self.quantity.magnitude)
             + tuple(sorted(self.quantity.units.items()))
         )
+
+    def evalf(self, *args, **kwargs):
+        return self.__class__(Q_(self.quantity.magnitude.evalf(*args, **kwargs),
+                                 self.quantity.units))
 
 def _init():
     # Monkey-patch pint Quantity.
