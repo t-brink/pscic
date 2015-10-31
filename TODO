@@ -34,14 +34,9 @@ In order:
 ** DOES NOT YET PLAY NICE WITH UNITS! sympy unit support is not up to
    scratch with regard to pint, so we need to hammer those together
    ourselves!
-*** only unit to the power of symbolic does not work, yet, but probably
-    should (no priority).
-*** solving equalities with units is not supported, yet. This will probably
-    need a temporary conversion to sympy units or something. Alternatively
-    every unit will be converted to a symbol and re-translated in the end.
+*** solving equalities with units is not icky. often the solution
+    seems OK, but is not evaluated!
 *** Also missing: unit conversion for solutions.
-*** x + 1cm does not work, complaining about the different units, when
-    in fact this means that x simply is a length!
 ** assumptions for x would be nice!
 ** using <expr>.atoms(sympy.Symbol), we can find all variables in an
    expression. This may be of some use for the solver/plotter, e.g.,
@@ -104,8 +99,6 @@ In order:
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
    them
-
-* time every calculation and output the time it took somewhere (status line, ...)
 
 * hex/oct/bin input/output.  support floats.  [input done]
 ** support roman numerals somehow  [input done]

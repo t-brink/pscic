@@ -180,10 +180,27 @@ class Quantity(AtomicExpr):
         return self.__class__(abs(self.quantity))
 
     def __eq__(self, other):
-        if isinstance(other, (int, float, complex, Q_)):
-            return self.quantity == other
-        elif isinstance(other, self.__class__):
+        mag = self.magnitude
+        if isinstance(other, self.__class__):
+            # TODO: 0kg != 0cm is not consistent with below, is
+            # that OK??? Qalculate does it like this.
             return self.quantity == other.quantity
+        elif (
+                (
+                    (isinstance(other, sympy.Basic) and other.is_zero)
+                    or
+                    (other == 0)
+                ) and
+                (
+                    (isinstance(mag, sympy.Basic) and mag.is_zero)
+                    or
+                    (mag == 0)
+                )
+            ):
+            # We accept 0kg == 0 as True.
+            return True
+        elif isinstance(other, (int, float, complex, Q_)):
+            return self.quantity == other
         else:
             False
             #return super().__eq__(other)

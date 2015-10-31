@@ -284,7 +284,7 @@ class Equality(Operator):
         """Try to solve."""
         lhs, rhs = self._eval(self.lhs, self.rhs)
         true, false = sympy.S.true, sympy.S.false
-        try:           
+        try:
             eq = sympy.Eq(lhs, rhs)
             # Check if we can already say the expression is true or false.
             if eq is true or eq is false:
@@ -293,7 +293,7 @@ class Equality(Operator):
             eq = eq.simplify()
             if eq is true or eq is false:
                 return bool(eq)
-        except ValueError:# (ValueError, pint.DimensionalityError):
+        except ValueError:
             # Units don't fit, not equal.
             return False
         # Try to solve for x.
