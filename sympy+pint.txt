@@ -6,6 +6,8 @@
 
 ** Sometimes the solver raises an exception where it shouldn't.
 
+** "x / 1cm = 16cm / 19cm" returns False.
+
 * matrix:
 
 ** seems to work with units, but is generally rough around the edges!
