@@ -27,31 +27,10 @@ from .exceptions import (UnknownFunctionError,
                          VariableLengthRowsError)
 from . import units
 from . import unitbridge
+from .result import RomanInt, Result, Solutions
 
 
 _X = sympy.Symbol("x")
-
-
-def _apply(obj, method, args, kwargs, exclude_classes=()):
-    """Call method on obj, except if obj is instance of on of exclude_classes.
-
-    If the object is a pint Quantity, only call the method on the
-    magnitude, not the unit. Method is called with args and kwargs.
-
-    """
-    if isinstance(obj, exclude_classes):
-        return obj
-    # Strip unit.
-    is_q = isinstance(obj, units.Q_)
-    if is_q:
-        magnitude = obj.magnitude
-    else:
-        magnitude = obj
-    magnitude = getattr(magnitude, method)(*args, **kwargs)
-    if is_q:
-        return units.Q_(magnitude, obj.units)
-    else:
-        return magnitude
 
 
 class Wrapper:
@@ -60,34 +39,21 @@ class Wrapper:
     It is a thin wrapper around Expression, Conversion, etc.
 
     """
-    def __init__(self, cmd):
+    def __init__(self, input_str, cmd):
+        self.input_str = input_str
         self.cmd = cmd
 
     def __str__(self):
         return str(self.cmd)
 
-    def evaluate_asis(self):
-        """Evaluate, not converting explicitly to float."""
-        return self.cmd.evaluate()
-
     def evaluate(self):
-        """Evaluate human-readable.
+        """Evaluate.
 
-        That means, convert to float where not already float or integer.
+        Return a Result object, which can be used for pretty-printing.
 
         """
-        evaluated = self.evaluate_asis()
-        return _apply(evaluated, "evalf", (), {},
-                      exclude_classes=(sympy.numbers.Integer,
-                                       sympy.numbers.Float,
-                                       bool))
-
-    def evaluate_simplify(self):
-        """Evaluate, not converting to float, but trying to simplify
-        expression."""
-        evaluated = self.evaluate_asis()
-        return _apply(evaluated, "simplify", (), {},
-                      exclude_classes=(bool,))
+        result = self.cmd.evaluate()
+        return Result(self.input_str, self.cmd, result)
 
 
 # Helper classes for primitive literals.
@@ -115,47 +81,11 @@ def process_realbase(s, loc, toks):
     return i+r
 
 
-class RomanInt:
-
-    numerals = ["I", "V", "X", "L", "C", "D", "M"]
-    # Populate lookup table.
-    table = {"": 0}
-    rev_table = {0: ""} # int -> roman
-    for exponent in range(3):
-        one, five, ten = numerals[exponent*2:exponent*2+3]
-        for i in range(1,10):
-            val = i * 10**exponent
-            rs = (i//5) * five + (i%5) * one
-            table[rs] = val
-            rev_table[val] = rs
-            if i % 5 == 4:
-                # subtraction
-                rs = one + (1-i//5)*five + (i//5)*ten
-                table[rs] = val
-                rev_table[val] = rs # overwrite "sloppy" numerals, e.g. 'IIII'
-    del exponent, one, five, ten, i, val, rs
-
-    @classmethod
-    def process(cls, s, loc, toks):
-        _, thousands, hundreds, tens, ones = toks[0]
-        i = len(thousands) * 1000
-        i += cls.table[hundreds] + cls.table[tens] + cls.table[ones]
-        return sympy.Integer(i)
-
-    @classmethod
-    def int_to_roman(cls, integer):
-        # TODO: test this method!!!!    
-        if integer < 1 or integer > 4999:
-            raise ValueError("Roman numerals are only supported on the "
-                             "interval [1;4999]!")
-        retval = "M" * (integer // 1000)
-        integer %= 1000
-        retval += cls.rev_table[(integer // 100) * 100]
-        integer %= 100
-        retval += cls.rev_table[(integer // 10) * 10]
-        integer %= 10
-        retval += cls.rev_table[integer]
-        return retval
+def process_romanint(s, loc, toks):
+    _, thousands, hundreds, tens, ones = toks[0]
+    i = len(thousands) * 1000
+    i += RomanInt.table[hundreds] + RomanInt.table[tens] + RomanInt.table[ones]
+    return sympy.Integer(i)
 
 
 def process_float(s, loc, toks):
@@ -244,28 +174,6 @@ class Conversion(Operator):
 class Equality(Operator):
     """<lhs> = <rhs>, autosolved if possible."""
 
-    class Solutions:
-        # Helper class for pretty-printing.
-        def __init__(self, x, solutions):
-            self.x = x
-            self.solutions = solutions
-
-        def __str__(self):
-            if len(self.solutions) == 1:
-                return "{} = {}".format(self.x, self.solutions[0])
-            else:
-                return "{} = [{}]".format(self.x,
-                                          "; ".join(str(i)
-                                                   for i in self.solutions))
-
-        def evalf(self, *args, **kwargs):
-            return self.__class__(self.x, [_apply(i, "evalf", args, kwargs)
-                                           for i in self.solutions])
-
-        def simplify(self, *args, **kwargs):
-            return self.__class__(self.x, [_apply(i, "simplify", args, kwargs)
-                                           for i in self.solutions])
-
     def __init__(self, lhs, rhs):
         self.lhs = lhs
         self.rhs = rhs
@@ -304,7 +212,7 @@ class Equality(Operator):
         if not solutions:
             return eq
         else:
-            return self.Solutions(_X, solutions)
+            return Solutions(_X, solutions)
 
 
 class SymbolOperator(Operator):

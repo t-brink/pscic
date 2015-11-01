@@ -17,7 +17,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5 import QtWidgets
 import pyparsing
 
-from ... import operators
+from ... import result
 from ... import exceptions
 from ... import units
 
@@ -55,7 +55,7 @@ class OutputWidget(QtWidgets.QWidget):
 
         self.setLayout(layout)
 
-    def update_output(self, val):
+    def update_output(self, val, mode, numeral_system, digits, units):
         style = ""
         text = ""
         if isinstance(val, (exceptions.Error, pyparsing.ParseException)):
@@ -65,28 +65,17 @@ class OutputWidget(QtWidgets.QWidget):
             style = "color: red;"
             text = "Value error: " + str(val)
         elif val is None:
+            # No input string, so show no result.
             style = ""
             text = ""
         else:
             # Correct output.
             style = "font-size: x-large;"
-            if isinstance(val, units.Q_):
-                # pretty-print units.
-                text = "= {:H~}".format(val)
-            elif isinstance(val, operators.Equality.Solutions):
-                text = "<br>".join(
-                    "<i>{!s}</i> = {}".format(
-                        val.x,
-                        ("{:H~}".format(sol)
-                         if isinstance(sol, units.Q_) # TODO: repeated code here
-                         else "{!s}".format(sol))
-                    )
-                    for sol in val.solutions
-                )
-            elif isinstance(val, bool):
-                text = str(val)
-            else:
-                text = "= {!s}".format(val)
+            try:
+                text = val.as_string(mode, numeral_system, digits, units)
+            except ValueError as e:
+                style = "color: red;"
+                text = "Printing error: " + str(e)
         self.output_field.setText('<span style="{}">'.format(style)
                                   + text
                                   + '</span>')

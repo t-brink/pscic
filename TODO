@@ -81,6 +81,8 @@ In order:
 ** a unit/constant/function/symbol selector (instead of a keypad-thingy)
 ** document every function, unit, symbol, variable and (optionally) show
    this somewhere.
+** Math printing should be done with QWebKit + MathJax (local
+   copy). Hopefully this is fast enough, otherwise we need to get tricky!
 
 * support variables (x,y,z only perhaps?) [sympy does all the work]
 ** calculate everything except them [sympy]

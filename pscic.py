@@ -44,9 +44,5 @@ while True:
     except ValueError as e:
         print("ValueError:", e)
         continue
-    if isinstance(val, Q_):
-        # pretty-print units.
-        val = "{:P~}".format(val)
-    elif isinstance(val, unitbridge.Quantity):
-        val = "{:P~}".format(val.quantity)
-    print("=", str(val))
+    # TODO: make format options available somehow
+    print(val.as_string())

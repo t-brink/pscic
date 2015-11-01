@@ -16,15 +16,15 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5 import QtWidgets
 
+from ...result import NumeralSystem, Mode
+
 class OutputCtrls(QtWidgets.QWidget):
 
     # exact, float_display
-    changed = pyqtSignal(bool, str)
+    changed = pyqtSignal(Mode, str, NumeralSystem, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.output_label = QtWidgets.QLabel("Output:")
 
         self.exact_or_float = QtWidgets.QToolButton(parent=self)
         self.exact_or_float.setText("Exact")
@@ -39,25 +39,34 @@ class OutputCtrls(QtWidgets.QWidget):
         self.float_display.addItem("Simple", "simp")
         self.float_display.currentIndexChanged.connect(self.emit_changed)
 
-        self.number_system = QtWidgets.QComboBox(parent=self)
-        self.number_system.addItem("Binary", "bin")
-        self.number_system.addItem("Octal", "oct")
-        self.number_system.addItem("Decimal", "dec")
-        self.number_system.addItem("Hexadecimal", "hex")
-        self.number_system.addItem("Roman numeral", "roman")
-        self.number_system.setCurrentIndex(2)
-        self.number_system.currentIndexChanged.connect(self.emit_changed)
+        self.numeral_system = QtWidgets.QComboBox(parent=self)
+        self.numeral_system.addItem("Binary", NumeralSystem.binary)
+        self.numeral_system.addItem("Octal", NumeralSystem.octal)
+        self.numeral_system.addItem("Decimal", NumeralSystem.decimal)
+        self.numeral_system.addItem("Hexadecimal", NumeralSystem.hexadecimal)
+        self.numeral_system.addItem("Roman numeral", NumeralSystem.roman)
+        self.numeral_system.setCurrentIndex(2)
+        self.numeral_system.currentIndexChanged.connect(self.emit_changed)
+
+        self.precision_label = QtWidgets.QLabel("Precision:")
+
+        self.precision_chooser = QtWidgets.QSpinBox(parent=self)
+        self.precision_chooser.setMinimum(1)
+        self.precision_chooser.setMaximum(99)
+        self.precision_chooser.setValue(8)
+        self.precision_chooser.valueChanged.connect(self.emit_changed)
 
         # Set layout.
         layout = QtWidgets.QHBoxLayout()
 
-        layout.addWidget(self.output_label)
-        self.output_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                        QtWidgets.QSizePolicy.Fixed)
-
         layout.addWidget(self.exact_or_float)
         layout.addWidget(self.float_display)
-        layout.addWidget(self.number_system)
+        layout.addWidget(self.numeral_system)
+        layout.addWidget(self.precision_label)
+
+        self.precision_label.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                           QtWidgets.QSizePolicy.Fixed)
+        layout.addWidget(self.precision_chooser)
 
         self.setLayout(layout)
 
@@ -66,6 +75,10 @@ class OutputCtrls(QtWidgets.QWidget):
 
     @property
     def data(self):
-        return (self.exact_or_float.isChecked(),
-                self.float_display.currentData())
+        return ((Mode.try_exact
+                 if self.exact_or_float.isChecked()
+                 else Mode.to_float),
+                self.float_display.currentData(),
+                self.numeral_system.currentData(),
+                self.precision_chooser.value())
 

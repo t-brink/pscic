@@ -215,6 +215,7 @@ class Quantity(AtomicExpr):
     def evalf(self, *args, **kwargs):
         return self.__class__(Q_(self.quantity.magnitude.evalf(*args, **kwargs),
                                  self.quantity.units))
+    n = evalf
 
 def _init():
     # Monkey-patch pint Quantity.

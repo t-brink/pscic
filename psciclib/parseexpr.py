@@ -69,7 +69,7 @@ romanint = Group(
     + Regex(r'XC|XL|L?X{0,4}', re.IGNORECASE)
     + Regex(r'IX|IV|V?I{0,4}', re.IGNORECASE)
 )
-romanint.setParseAction(operators.RomanInt.process)
+romanint.setParseAction(operators.process_romanint)
 
 hexreal = Group( Literal("0x") + Regex(r'[0-9a-fA-F]+')
                  + Literal(".") +  Regex(r'[0-9a-fA-F]+'))
@@ -221,4 +221,7 @@ cmdln = conversion_cmd | equality | expr
 
 # Parse it.
 def parse(string):
-    return operators.Wrapper(cmdln.parseString(string, parseAll=True)[0])
+    return operators.Wrapper(
+        string,
+        cmdln.parseString(string, parseAll=True)[0]
+    )

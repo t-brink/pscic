@@ -26,6 +26,7 @@ import pyparsing
 from .. import parseexpr
 from .. import operators
 from .. import version
+from .. import result
 from ..exceptions import Error
 from ..units import Q_
 from .helpwindow import HelpWindow
@@ -123,27 +124,27 @@ class MainWindow(QtWidgets.QMainWindow):
         if not expr.strip():
             # Empty.
             self.input_widget.set_parsed_field("")
-            self.output_widget.update_output(None)
+            self.output_widget.update_output(None, None, None, None, None)
             return
         # Parse.
         try:
             tree = parseexpr.parse(expr)
         except (Error, pyparsing.ParseException) as e:
             self.input_widget.set_parsed_field("")
-            self.output_widget.update_output(e)
+            self.output_widget.update_output(e, None, None, None, None)
             return
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
-            if self.calc_exact:
-                val = tree.evaluate_simplify()
-            else:
-                val = tree.evaluate()
+            val = tree.evaluate()
         except ValueError as e:
-            self.output_widget.update_output(e)
+            self.output_widget.update_output(e, None, None, None, None)
             return
         # Output.
-        self.output_widget.update_output(val)
+        self.output_widget.update_output(
+            val, self.calc_exact, self.calc_numeral_system,
+            self.calc_precision, result.UnitMode.none
+        )
 
     def calculate(self, expr):
         tic = time.time()
@@ -151,11 +152,14 @@ class MainWindow(QtWidgets.QMainWindow):
         toc = time.time()
         self.sb.set_walltime(toc-tic)
 
-    def update_mode_field(self, exact, float_display):
+    def update_mode_field(self, exact, float_display, numeral_system,
+                          precision):
         self.calc_exact = exact
         self.calc_float_display = float_display
+        self.calc_numeral_system = numeral_system
+        self.calc_precision = precision
         self.calc_trigmode = "rad"
-        self.input_widget.update_mode_field(exact, "rad")
+        self.input_widget.update_mode_field(exact, self.calc_trigmode)
 
     def to_base_units(self):
         self.sb.set_tmp("To base units not implemented")
