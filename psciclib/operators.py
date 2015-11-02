@@ -168,7 +168,7 @@ class Conversion(Operator):
                             expr.quantity.units)
         elif not isinstance(expr, units.Q_):
             expr = units.Q_(expr) # dimensionless
-        return expr.to(to_unit.quantity)
+        return unitbridge.Quantity(expr.to(to_unit.quantity))
 
 
 class Equality(Operator):
