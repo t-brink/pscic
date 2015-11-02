@@ -76,6 +76,12 @@ class OutputWidget(QtWidgets.QWidget):
             except ValueError as e:
                 style = "color: red;"
                 text = "Printing error: " + str(e)
+            else:
+                # TODO: this is a hack, we should actually use a   
+                # pretty-printer which outputs some sort of markup 
+                # (html or mathml) to put that into a widget which 
+                # understands it. Still, I want newlines for now.  
+                text = text.replace("\n", "<br>")
         self.output_field.setText('<span style="{}">'.format(style)
                                   + text
                                   + '</span>')

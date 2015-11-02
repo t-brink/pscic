@@ -216,6 +216,10 @@ class Result:
                 res = "= " + RomanInt.int_to_roman(res)
             else:
                 res = "= " + str(res)
+        elif isinstance(res, Solutions):
+            # TODO: recursive application of the previous actions :-(
+            res = "\n".join("{} = {}".format(res.x, sol)
+                            for sol in res.solutions)
         else:
             res = "= " + str(res)
         # TODO: unit thing.
