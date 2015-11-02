@@ -84,7 +84,9 @@ def process_realbase(s, loc, toks):
 def process_romanint(s, loc, toks):
     _, thousands, hundreds, tens, ones = toks[0]
     i = len(thousands) * 1000
-    i += RomanInt.table[hundreds] + RomanInt.table[tens] + RomanInt.table[ones]
+    i += (RomanInt.table[hundreds.upper()]
+          + RomanInt.table[tens.upper()]
+          + RomanInt.table[ones.upper()])
     return sympy.Integer(i)
 
 
