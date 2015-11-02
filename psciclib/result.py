@@ -93,6 +93,26 @@ class Result:
         self.parsed = parsed
         self.raw_result = raw_result
 
+    def n(self, except_classes=(bool, sympy.Integer, sympy.Float)):
+        # TODO: this shares a bunch of code with the stuff below, I
+        # guess. Need it for tests, though!
+        if isinstance(self.raw_result, except_classes):
+            # Those can be returned as-is.
+            return self.raw_result
+        elif isinstance(self.raw_result, sympy.Basic):
+            # Those should be floatified.
+            return self.raw_result.n()
+        elif isinstance(self.raw_result, Solutions):
+            # Rules as above for the individual solutions.
+            return self.raw_result.apply(
+                lambda sol: (sol
+                             if isinstance(sol, except_classes)
+                             else sol.n())
+            )
+        else:
+            raise RuntimeError("Invalid type for Result.raw_result: {}"
+                               "".format(type(self.raw_result)))
+
     @staticmethod
     def _to_float(obj, digits):
         if isinstance(obj, sympy.Integer):
@@ -162,6 +182,7 @@ class Result:
         Will prefix equals sign if deemed appropriate.
 
         """
+        # TODO: probably some code is shared with the `n()' method above!
         # TODO: walk through expressions, so that we can apply the
         # following rules:
         #   * in try_exact mode, still apply "digits" precision to floats

@@ -27,7 +27,7 @@ from psciclib.units import ureg
 # Helpers.
 def pe(s, *args):
     print(s.format(*args))
-    return parse(s.format(*args)).evaluate()
+    return parse(s.format(*args)).evaluate().n()
 
 def rand(min, max):
     return random.random() * (max-min) + min
