@@ -41,6 +41,8 @@ In order:
 ** using <expr>.atoms(sympy.Symbol), we can find all variables in an
    expression. This may be of some use for the solver/plotter, e.g.,
    if both x and y are in there, plot 3D.
+** float-precision on parsing should match what the user put in! No
+   loss until pretty-printing!
 
 * support constants (a bunch of letters instead of numbers)
 ** physical constants are still missing
