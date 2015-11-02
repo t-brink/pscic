@@ -20,6 +20,7 @@ from PyQt5.QtGui import QFontMetrics, QSyntaxHighlighter, QTextCursor, QColor
 from PyQt5 import QtWidgets
 
 from .. import tips
+from ...result import Mode
 
 
 class InputEdit(QtWidgets.QPlainTextEdit):
@@ -273,7 +274,7 @@ class InputWidget(QtWidgets.QWidget):
             r'<span style="font-size: small;">'
             + "{}{}"
             "".format(
-                ("EXACT " if exact else ""),
+                ("EXACT " if exact == Mode.try_exact else ""),
                 {"rad": "RAD", "deg": "DEG", "grad": "GRA"}[trig_mode],
             )
             + r'</span>'

@@ -91,7 +91,7 @@ def process_romanint(s, loc, toks):
 
 
 def process_float(s, loc, toks):
-    return sympy.Float(toks[0])
+    return sympy.Float(toks[0], "")
 
 
 class Operator(metaclass=abc.ABCMeta):

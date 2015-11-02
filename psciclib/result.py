@@ -22,6 +22,10 @@ import math
 
 import sympy
 
+from .units import Q_
+from . import unitbridge
+
+
 @enum.unique
 class Mode(enum.Enum):
     try_exact = 1
@@ -69,7 +73,7 @@ class RomanInt:
     @classmethod
     def int_to_roman(cls, integer):
         # TODO: test this method!!!!    
-        if not integer.is_integer:
+        if not (isinstance(integer, int) or integer.is_integer):
             raise ValueError("Roman numerals are only supported for integers.")
         if integer < 1 or integer > 4999:
             raise ValueError("Roman numerals are only supported on the "
@@ -182,6 +186,7 @@ class Result:
         Will prefix equals sign if deemed appropriate.
 
         """
+        # TODO: THIS METHOD SUCKS, THE as_html() ONE IS BETTER!
         # TODO: probably some code is shared with the `n()' method above!
         # TODO: walk through expressions, so that we can apply the
         # following rules:
@@ -225,7 +230,187 @@ class Result:
         # TODO: unit thing.
         return res
 
-    #TODO: MathML/Latex/... output and a widget that can handle it!
+    @classmethod
+    def _decimal_as_html(cls, number, numeral_system, digits):
+        if numeral_system == NumeralSystem.decimal:
+            # Set precision.
+            f = str(number.evalf(n=digits))
+            # Fix ugliness.
+            pre, exp = (f.split("e") + [""])[:2] # ensure length 2 :-(
+            # Non-exponential part.
+            pre1, pre2 = pre.split(".")
+            #pre1 = pre1.lstrip("+0")  # won't happen, I think
+            pre2 = pre2.rstrip("0")
+            if pre2:
+                pre = pre1 + "." + pre2
+            else:
+                pre = pre1
+            # Exponential part.
+            exp = exp.lstrip("+0")
+            if not exp:
+                return pre
+            return pre + "·" + "10<sup>" + exp + "</sup>"
+        elif numeral_system == NumeralSystem.roman:
+            raise ValueError("Cannot express float as Roman numeral.")
+        else:
+            return cls._to_other_base(number, numeral_system, digits)
+
+    @classmethod
+    def _integer_as_html(cls, number, numeral_system, digits):
+        if numeral_system == NumeralSystem.decimal:
+            return str(number)
+        elif numeral_system == NumeralSystem.roman:
+            return RomanInt.int_to_roman(number)
+        else:
+            return cls._to_other_base(number, numeral_system, digits)
+
+    @classmethod
+    def _atom_as_html(cls, atom, mode, numeral_system, digits):
+        if atom == sympy.I:
+            # There is no float representation, return immediately.
+            return "i"
+        # Exact or float?
+        if mode == Mode.to_float:
+            atom = atom.evalf(digits)
+        elif mode == Mode.try_exact:
+            atom = atom
+        else:
+            raise RuntimeError(
+                "Mode is {}, but we can't handle it. This is a bug (wan35E)."
+                "".format(mode)
+            )
+        if isinstance(atom, sympy.Float):
+            return cls._decimal_as_html(atom, numeral_system, digits)
+        elif atom == sympy.E:
+            return "e" # would be upper case otherwise :-(
+        elif atom == sympy.pi:
+            return "π"
+        else:
+            return str(atom)
+
+    @classmethod
+    def _as_html(cls, raw_result, mode, numeral_system, digits, units):
+        # Simplify result.
+        if isinstance(raw_result, bool):
+            # No need to simplify or do anything else, really.
+            return "true" if raw_result else "false"
+        elif isinstance(raw_result, Solutions):
+            # Make a table out of solutions.
+            return (
+                '<table border="0" style="float:right;">'
+                + "".join('<tr><td><i>{!s}</i> = </td><td>{}</td></tr>'
+                          ''.format(raw_result.x,
+                                    cls._as_html(i, mode, numeral_system,
+                                                 digits, units))
+                          for i in raw_result.solutions)
+                + '</table>'
+            )
+        elif isinstance(raw_result, (sympy.Rational, sympy.Float)):
+            # Those need neither simplify() nor evalf() right now.
+            result = raw_result
+        else:
+            # Try to simplify.
+            if mode == Mode.to_float:
+                result = raw_result.evalf(digits*10) # precision will be
+                                                     # lowered later.
+            elif mode == Mode.try_exact:
+                result = raw_result.simplify()
+            else:
+                raise RuntimeError(
+                    "Mode is {}, but we can't handle it. "
+                    "This is a bug (ea4djf)."
+                    "".format(mode)
+                )
+        # Recurse through expression.
+        def printer(expr):
+            # TODO: be intelligent about parentheses!
+            # TODO: big parentheses!
+            if isinstance(expr, sympy.Symbol):
+                return "<i>" + str(expr) + "</i>"
+            elif isinstance(expr, unitbridge.Quantity):
+                u = expr.unity_quantity
+                m = expr.magnitude
+                if units == UnitMode.none:
+                    pass
+                elif units == UnitMode.to_base:
+                    u = u.to_base_units()
+                    m = m * u.magnitude
+                    u = Q_(1, u.units)
+                elif units == UnitMode.to_best:
+                    raise ValueError("'to best units' not implemented :-(")
+                else:
+                    raise RuntimeError("Unknown unit mode: {}. "
+                                       "This is a bug (d6QtSj)."
+                                       "".format(units))
+                us = "{:~H}".format(u).lstrip("1").lstrip(" ")
+                if us == "dimensionless":
+                    return printer(m)
+                else:
+                    return printer(m) + " " + us
+            elif isinstance(expr, sympy.Float):
+                return cls._decimal_as_html(expr, numeral_system, digits)
+            elif isinstance(expr, sympy.Integer):
+                return cls._integer_as_html(expr, numeral_system, digits)
+            elif isinstance(expr, sympy.Rational):
+                if mode == Mode.to_float:
+                    return cls._decimal_as_html(expr, numeral_system, digits)
+                else:
+                    # TODO: fraction sucks in HTML :-(
+                    return (
+                        "<sup>"
+                        + cls._integer_as_html(expr.p, numeral_system, digits)
+                        + "</sup>&frasl;<sub>"
+                        + cls._integer_as_html(expr.q, numeral_system, digits)
+                        + "</sub>"
+                    )
+            elif isinstance(expr, sympy.Atom):
+                return cls._atom_as_html(expr, mode, numeral_system, digits)
+            elif isinstance(expr, sympy.Add):
+                return "(" + " + ".join(printer(summand)
+                                        for summand in expr.args) + ")"
+            elif isinstance(expr, sympy.Mul):
+                # TODO: fraction (investigate nested Pow)!
+                # TODO: leave out multiplication sign before constant!
+                args = [factor for factor in expr.args if factor != 1]
+                if not args:
+                    return "1"
+                elif len(args) == 1:
+                    return printer(args[0])
+                elif len(args) == 2 and args[0] == -1:
+                    # TODO: hopefully the second arg never has a minus
+                    # sign itself!?
+                    return "-" + printer(args[1])
+                else:
+                    return "(" + " · ".join(printer(factor)
+                                            for factor in args) + ")"
+            elif isinstance(expr, sympy.Pow):
+                # TODO: multiple exponents suck in HTML
+                return (
+                    printer(expr.args[0])
+                    + "<sup>" + printer(expr.args[1]) + "</sup>"
+                )
+            elif isinstance(expr, sympy.Function):
+                # TODO: sympy.Function -> look up name in a table, the
+                # same table we use to map from string to
+                # function. This table needs to be made, of course,
+                # but it should contain also the help strings.
+                return (
+                    str(expr.func) + "("
+                    + ", ".join(printer(arg) for arg in expr.args)
+                    + ")"
+                )
+            else:
+                raise RuntimeError(
+                    "Unsupported type for printing: {}. Bug 3a89Bj."
+                    "".format(type(expr))
+                )
+        return printer(result)
+
+    def as_html(self, mode=Mode.to_float,
+                numeral_system=NumeralSystem.decimal,
+                digits=_DEFAULT_DIGITS, units=UnitMode.none):
+        return self._as_html(self.raw_result, mode, numeral_system,
+                             digits, units)
 
 
 class Solutions:

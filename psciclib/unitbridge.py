@@ -55,6 +55,11 @@ class Quantity(AtomicExpr):
     def units(self):
         return self.quantity.units
 
+    @property
+    def unity_quantity(self):
+        """Return self as a quantity where the magnitude in int(1)."""
+        return Q_(1, self.quantity.units)
+
     def convert_to(self, unit):
         if isinstance(unit, self.__class__):
             unit = unit.quantity

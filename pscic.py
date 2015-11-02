@@ -26,6 +26,7 @@ from psciclib import parseexpr
 from psciclib.exceptions import Error
 from psciclib.units import Q_
 from psciclib import unitbridge
+from psciclib.result import Mode
 
 while True:
     try:

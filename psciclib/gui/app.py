@@ -120,7 +120,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.calc_trigmode = None
         self.update_mode_field(*self.output_ctrls.data)
 
-    def _calculate(self, expr):
+    def _calculate(self, expr, unit_mode):
         if not expr.strip():
             # Empty.
             self.input_widget.set_parsed_field("")
@@ -143,12 +143,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Output.
         self.output_widget.update_output(
             val, self.calc_exact, self.calc_numeral_system,
-            self.calc_precision, result.UnitMode.none
+            self.calc_precision, unit_mode
         )
 
-    def calculate(self, expr):
+    def calculate(self, expr, unit_mode=result.UnitMode.none):
         tic = time.time()
-        self._calculate(expr)
+        self._calculate(expr, unit_mode)
         toc = time.time()
         self.sb.set_walltime(toc-tic)
 
@@ -162,10 +162,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_widget.update_mode_field(exact, self.calc_trigmode)
 
     def to_base_units(self):
-        self.sb.set_tmp("To base units not implemented")
+        # TODO: do not re-calculate, but re-print the result!
+        self.calculate(self.input_widget.text, result.UnitMode.to_base)
 
     def to_best_units(self):
-        self.sb.set_tmp("To best units not implemented")
+        # TODO: do not re-calculate, but re-print the result!
+        self.calculate(self.input_widget.text, result.UnitMode.to_best)
 
     def copy_paste_mode(self):
         self.sb.set_tmp("Copy/paste mode not implemented")

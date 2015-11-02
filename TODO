@@ -66,6 +66,9 @@ In order:
 *** h is planck, not hour
 *** pt is pint not point
 *** ...
+** optionally(?) auto-apply prefixes (1200m -> 1.2km)
+** 12 km/m does not yet give 12000 and 1 in/cm does not auto-resolve
+   to dimensionless
 
 * a ° postfix operator, which converts to radians
 
@@ -85,6 +88,9 @@ In order:
    this somewhere.
 ** Math printing should be done with QWebKit + MathJax (local
    copy). Hopefully this is fast enough, otherwise we need to get tricky!
+** pretty-printer doesn't set intelligent parentheses, this should be done!
+** to best units / to base units  should be toggle-buttons (mutually
+   exclusive!)
 
 * support variables (x,y,z only perhaps?) [sympy does all the work]
 ** calculate everything except them [sympy]
@@ -99,6 +105,9 @@ In order:
    this is not user-friendly, as we need to transpose those sometimes
    so: auto-transpose them on evaluation!
 ** needs more support and error checking
+
+* parser
+** accept ²,³,⁴, etc. as ^2 ^3 ^4 etc.
 
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
