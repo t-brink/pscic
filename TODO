@@ -57,6 +57,16 @@ In order:
    loss until pretty-printing!
 *** this works, but the precision should be at least equal to what is
     requested in the output! Better higher!
+*** for a (not-so-nice, but workable) solution, see
+    operators.process_float's TODO comment!
+*** float-precision doesn't work nicely with pint which uses python
+    floats  :-( No idea yet on how to fix this :-( Need to make a
+    string roundtrip when dealing with this, perhaps a sympy.Float
+    subclass can help
+*** !!! In the end, all floats need the same precision when doing
+    calculations !!! The test-suite must then be adapted to check
+    for _exact_ float equality in the cases where we can require
+    it (negation; noops, like the unary +; addition?; ...)
 
 * support constants (a bunch of letters instead of numbers)
 ** physical constants are still missing

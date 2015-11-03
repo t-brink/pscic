@@ -90,8 +90,39 @@ def process_romanint(s, loc, toks):
     return sympy.Integer(i)
 
 
+class PscicFloat(sympy.Float):
+    """TODO: not a subclass of sympy.Float."""
+    def __str__(self):
+        s = super().__str__()
+        # TODO: copy-paste from result.Result._decimal_as_html()
+        pre, exp = (s.split("e") + [""])[:2] # ensure length 2 :-(
+        pre1, pre2 = pre.split(".")
+        pre2 = pre2.rstrip("0")
+        if pre2:
+            pre = pre1 + "." + pre2
+        else:
+            pre = pre1
+        exp = exp.lstrip("+0")
+        if not exp:
+            return pre
+        return pre + "e" + exp
+
 def process_float(s, loc, toks):
-    return sympy.Float(toks[0], "")
+    # TODO: precision is too high. No good solutions come to mind, we     
+    # would need to keep them as strings until we know the highest        
+    # requested precision, which depends on what we want to output. So    
+    # re-calculation for precisions higher then the highest precision     
+    # of the previous evaluation is necessary!                            
+    #
+    # So
+    #   * keep as strings on parsing (own Float type)
+    #   * somehow register the highest encountered precision
+    #   * when evaluating, pass a minimum precision, evaluate Floats
+    #     given with less precision to this minimum precision
+    #   * store the minimum precision in the result
+    #   * if we want a higher precision, we need to re-evaluate, if we
+    #     want lower or same, we can use the cached result.
+    return PscicFloat(toks[0], 100)
 
 
 class Operator(metaclass=abc.ABCMeta):

@@ -41,7 +41,7 @@ class TestStandaloneExpressions(unittest.TestCase):
 
     def test_negsign_float(self):
         a = rand(-1e6, 1e6)
-        self.assertEqual(pe("-{}", a), -a)
+        self.assertAlmostEqual(pe("-{}", a), -a)
 
     def test_possign_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -49,7 +49,7 @@ class TestStandaloneExpressions(unittest.TestCase):
 
     def test_possign_float(self):
         a = rand(-1e6, 1e6)
-        self.assertEqual(pe("+{}", a), +a)
+        self.assertAlmostEqual(pe("+{}", a), +a)
 
     def test_plus_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -59,7 +59,7 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_plus_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertEqual(pe("{} + {}", a, b), a + b)
+        self.assertAlmostEqual(pe("{} + {}", a, b), a + b)
 
     def test_minus_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -69,7 +69,7 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_minus_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertEqual(pe("{} - {}", a, b), a - b)
+        self.assertAlmostEqual(pe("{} - {}", a, b), a - b)
 
     def test_multiply_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -151,17 +151,17 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("1.e-4"), sympy.Float)
         self.assertIsInstance(pe("1.0e+4"), sympy.Float)
         self.assertIsInstance(pe("1.0e-4"), sympy.Float)
-        self.assertEqual(pe("1."), 1.0)
-        self.assertEqual(pe("01."), 1.0)
-        self.assertEqual(pe("1.0"), 1.0)
-        self.assertEqual(pe("1e4"), 1e4)
-        self.assertEqual(pe("1e+4"), 1e4)
-        self.assertEqual(pe("1e-4"), 1e-4)
-        self.assertEqual(pe("1.e4"), 1e4)
-        self.assertEqual(pe("1.e+4"), 1e4)
-        self.assertEqual(pe("1.e-4"), 1e-4)
-        self.assertEqual(pe("1.0e+4"), 1e4)
-        self.assertEqual(pe("1.0e-4"), 1e-4)
+        self.assertAlmostEqual(pe("1."), 1.0)
+        self.assertAlmostEqual(pe("01."), 1.0)
+        self.assertAlmostEqual(pe("1.0"), 1.0)
+        self.assertAlmostEqual(pe("1e4"), 1e4)
+        self.assertAlmostEqual(pe("1e+4"), 1e4)
+        self.assertAlmostEqual(pe("1e-4"), 1e-4)
+        self.assertAlmostEqual(pe("1.e4"), 1e4)
+        self.assertAlmostEqual(pe("1.e+4"), 1e4)
+        self.assertAlmostEqual(pe("1.e-4"), 1e-4)
+        self.assertAlmostEqual(pe("1.0e+4"), 1e4)
+        self.assertAlmostEqual(pe("1.0e-4"), 1e-4)
         self.assertIsInstance(pe("-1."), sympy.Float)
         self.assertIsInstance(pe("-01."), sympy.Float)
         self.assertIsInstance(pe("-1.0"), sympy.Float)
@@ -173,17 +173,17 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("-1.e-4"), sympy.Float)
         self.assertIsInstance(pe("-1.0e+4"), sympy.Float)
         self.assertIsInstance(pe("-1.0e-4"), sympy.Float)
-        self.assertEqual(pe("-1."), -1.0)
-        self.assertEqual(pe("-01."), -1.0)
-        self.assertEqual(pe("-1.0"), -1.0)
-        self.assertEqual(pe("-1e4"), -1e4)
-        self.assertEqual(pe("-1e+4"), -1e4)
-        self.assertEqual(pe("-1e-4"), -1e-4)
-        self.assertEqual(pe("-1.e4"), -1e4)
-        self.assertEqual(pe("-1.e+4"), -1e4)
-        self.assertEqual(pe("-1.e-4"), -1e-4)
-        self.assertEqual(pe("-1.0e+4"), -1e4)
-        self.assertEqual(pe("-1.0e-4"), -1e-4)
+        self.assertAlmostEqual(pe("-1."), -1.0)
+        self.assertAlmostEqual(pe("-01."), -1.0)
+        self.assertAlmostEqual(pe("-1.0"), -1.0)
+        self.assertAlmostEqual(pe("-1e4"), -1e4)
+        self.assertAlmostEqual(pe("-1e+4"), -1e4)
+        self.assertAlmostEqual(pe("-1e-4"), -1e-4)
+        self.assertAlmostEqual(pe("-1.e4"), -1e4)
+        self.assertAlmostEqual(pe("-1.e+4"), -1e4)
+        self.assertAlmostEqual(pe("-1.e-4"), -1e-4)
+        self.assertAlmostEqual(pe("-1.0e+4"), -1e4)
+        self.assertAlmostEqual(pe("-1.0e-4"), -1e-4)
 
     def test_operations(self):
         # Simply ensure that everything which should be integer, is.
@@ -599,7 +599,12 @@ class TestEquality(unittest.TestCase):
 
     def test_with_units(self):
         self.assertEqual(pe("1cm = 1cm"), True)
+        self.assertEqual(pe("100cm = 1m"), True)
+        self.assertEqual(pe("1m = 100cm"), True)
+        self.assertEqual(pe("1ft = 12in"), True)
+        self.assertEqual(pe("12in = 1ft"), True)
         self.assertEqual(pe("1in = 2.54cm"), True)
+        self.assertEqual(pe("2.54cm = 1in"), True)
         self.assertEqual(pe("1cm = 2cm"), False)
         self.assertEqual(pe("1cm = 1in"), False)
         self.assertEqual(pe("1cm = 1kg"), False)
