@@ -18,16 +18,17 @@ In order:
 ** some about dialog and "licence" command which outputs all
    licences of dependencies, too
 
-* support roman numerals for floats as long as they exactly
-  equal an integer.
+* Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just
    leave at default output...
-** support negative roman numerals
 ** nicer literals for roman numerals
 *** r{IV} / roman{MMLXI}
 *** can't think of something nicer and it works for other weird input
     formats, too. Can also do 0xFF = x{FF}, 0o455 = o{455}, and
     0b1001 = b{1001} then (although the 0xFF thing stays canonical).
+
+* improve startup time:
+  https://files.bemusement.org/talks/OSDC2008-FastPython/
 
 * support functions
 ** write tests!!!!

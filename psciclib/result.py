@@ -72,13 +72,22 @@ class RomanInt:
 
     @classmethod
     def int_to_roman(cls, integer):
-        # TODO: test this method!!!!    
-        if not (isinstance(integer, int) or integer.is_integer):
+        # Check type.
+        if isinstance(integer, (float, sympy.Float)) and (integer % 1 == 0):
+            integer = int(integer)
+        elif not (isinstance(integer, int) or integer.is_integer):
             raise ValueError("Roman numerals are only supported for integers.")
+        # Check range.
+        if integer < 1:
+            retval = "-"
+            integer = abs(integer)
+        else:
+            retval = ""
         if integer < 1 or integer > 4999:
             raise ValueError("Roman numerals are only supported on the "
-                             "interval [1;4999]!")
-        retval = "M" * (integer // 1000)
+                             "interval ±[1;4999]!")
+        # Convert
+        retval += "M" * (integer // 1000)
         integer %= 1000
         retval += cls.rev_table[(integer // 100) * 100]
         integer %= 100
@@ -251,7 +260,9 @@ class Result:
                 return pre
             return pre + "·" + "10<sup>" + exp + "</sup>"
         elif numeral_system == NumeralSystem.roman:
-            raise ValueError("Cannot express float as Roman numeral.")
+            # This may raise a ValueError, if the float does not
+            # correspond to an integer in the supported range.
+            return RomanInt.int_to_roman(number)
         else:
             return cls._to_other_base(number, numeral_system, digits)
 
