@@ -15,10 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import time # for debugging!
+__start = time.time()
+
 import sys
 
 from psciclib.gui import app
 
-
 if __name__ == "__main__":
-    sys.exit(app.main(sys.argv))
+    sys.exit(app.main(sys.argv, __start))

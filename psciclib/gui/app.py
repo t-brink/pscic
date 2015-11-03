@@ -183,7 +183,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__aw.show()
 
 
-def main(argv):
+def main(argv, __start): # __start is to time startup, it is a debugging tool!
     app = QtWidgets.QApplication(argv)
 
     # TODO: use python packaging facilities to get the path      
@@ -204,5 +204,10 @@ def main(argv):
     timer.timeout.connect(lambda: None) # this just drops to python's
                                         # main thread
     timer.start(500)
+
+    import time
+    __stop = time.time()
+    main_window.sb.set_tmp("Startup took {} s.".format(__stop - __start),
+                           timeout=20000)
 
     return app.exec_()
