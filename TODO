@@ -43,6 +43,8 @@ In order:
    if both x and y are in there, plot 3D.
 ** float-precision on parsing should match what the user put in! No
    loss until pretty-printing!
+*** this works, but the precision should be at least equal to what is
+    requested in the output! Better higher!
 
 * support constants (a bunch of letters instead of numbers)
 ** physical constants are still missing
