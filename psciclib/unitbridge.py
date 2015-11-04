@@ -63,7 +63,14 @@ class Quantity(AtomicExpr):
     def convert_to(self, unit):
         if isinstance(unit, self.__class__):
             unit = unit.quantity
-        return self.__class__(self.quantity.to(unit))
+        # Get conversion factor (need that to get more precise floats, sadly).
+        from_unit = Q_(1, self.quantity.units)
+        factor = from_unit.to(unit).magnitude
+        # Deal with float precision.
+        # TODO: be more intelligent than require a huge precision!   
+        factor = sympy.Float(str(factor), 100)
+        # Convert.
+        return self.__class__(Q_(factor*self.magnitude, unit))
 
     def __abs__(self):
         return self.__class__(Q_(sympy.Abs(self.magnitude), self.units))

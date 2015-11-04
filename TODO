@@ -101,6 +101,9 @@ In order:
    ill-defined) years will be 365 days in this format to make nice even
    numbers.
 *** maybe also parse something like that as input.
+** In the end, the precision for pint (64bit float) is not satisfactory,
+   and rolling my own unit support is probably preferable in the long run.
+   At least that gives full control.
 
 * a ° postfix operator, which converts to radians
 

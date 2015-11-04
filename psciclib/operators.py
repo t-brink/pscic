@@ -195,13 +195,14 @@ class Conversion(Operator):
     def evaluate(self):
         """Evaluate the expression and convert to requested unit."""
         expr, to_unit = self._eval(self.expr, self.to_unit)
-        if isinstance(expr, unitbridge.Quantity):
-            # TODO: is the extra sympify necessary???
-            expr = units.Q_(sympy.sympify(expr.quantity.magnitude),
-                            expr.quantity.units)
-        elif not isinstance(expr, units.Q_):
-            expr = units.Q_(expr) # dimensionless
-        return unitbridge.Quantity(expr.to(to_unit.quantity))
+        # Wrap if necessary.  # TODO: add sympify() somewhere?
+        if isinstance(expr, units.Q_):
+            expr = unitbridge.Quantity(expr)
+        # Convert anything which has no unit to dimensionless.
+        if not isinstance(expr, unitbridge.Quantity):
+            expr = unitbridge.Quantity(units.Q_(expr)) # dimensionless
+        # Convert units.
+        return expr.convert_to(to_unit)
 
 
 class Equality(Operator):
