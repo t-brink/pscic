@@ -133,12 +133,22 @@ class MainWindow(QtWidgets.QMainWindow):
             self.input_widget.set_parsed_field("")
             self.output_widget.update_output(e, None, None, None, None)
             return
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self, "Unhandled Exception", str(e)
+            )
+            return
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
             val = tree.evaluate()
         except ValueError as e:
             self.output_widget.update_output(e, None, None, None, None)
+            return
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self, "Unhandled Exception", str(e)
+            )
             return
         # Output.
         self.output_widget.update_output(

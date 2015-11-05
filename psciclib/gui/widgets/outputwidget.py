@@ -76,6 +76,11 @@ class OutputWidget(QtWidgets.QWidget):
             except ValueError as e:
                 style = "color: red;"
                 text = "Printing error: " + str(e)
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(
+                    self, "Unhandled Exception", str(e)
+                )
+                return
         self.output_field.setText('<span style="{}">'.format(style)
                                   + text
                                   + '</span>')
