@@ -410,6 +410,19 @@ class Result:
                     + ", ".join(printer(arg) for arg in expr.args)
                     + ")"
                 )
+            elif isinstance(expr, sympy.Matrix):
+                # TODO: make a table (special case vector to always be
+                # a column?)
+                if expr.shape == (1,1):
+                    # Treat 1x1 matrix as scalar.
+                    return printer(expr[0])
+                return (
+                    "["
+                    + ";".join(
+                        ",".join(printer(i) for i in expr.row(j))
+                        for j in range(expr.rows))
+                    + "]"
+                )
             else:
                 raise RuntimeError(
                     "Unsupported type for printing: {}. Bug 3a89Bj."

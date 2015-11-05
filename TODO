@@ -104,6 +104,8 @@ In order:
 ** In the end, the precision for pint (64bit float) is not satisfactory,
    and rolling my own unit support is probably preferable in the long run.
    At least that gives full control.
+** units that are words should have plurals. limitation of pint: it
+   parses, e.g., "2 days" but outputs "2 day".
 
 * a ° postfix operator, which converts to radians
 
