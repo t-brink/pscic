@@ -149,6 +149,3 @@ In order:
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
    them
-
-* hex/oct/bin input/output.  support floats.  [input done]
-** support roman numerals somehow  [input done]
