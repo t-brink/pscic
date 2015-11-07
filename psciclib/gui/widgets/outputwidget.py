@@ -80,7 +80,7 @@ class OutputWidget(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.critical(
                     self, "Unhandled Exception", str(e)
                 )
-                return
+                raise e
         self.output_field.setText('<span style="{}">'.format(style)
                                   + text
                                   + '</span>')

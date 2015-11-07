@@ -33,10 +33,6 @@ In order:
 * support functions
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
-** multiple arguments
-*** parsing [done]
-*** validating (how many args does this func take?)
-*** evaluating (easy?)
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint

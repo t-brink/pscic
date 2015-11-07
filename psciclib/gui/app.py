@@ -137,7 +137,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(
                 self, "Unhandled Exception", str(e)
             )
-            return
+            raise e
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
@@ -149,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(
                 self, "Unhandled Exception", str(e)
             )
-            return
+            raise e
         # Output.
         self.output_widget.update_output(
             val, self.calc_exact, self.calc_numeral_system,

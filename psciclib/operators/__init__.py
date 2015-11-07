@@ -20,14 +20,15 @@ from pyparsing import ParseResults
 import sympy
 import pint
 
-from .exceptions import (UnknownFunctionError,
-                         UnknownConstantError,
-                         UnknownUnitError,
-                         WrongNumberOfArgumentsError,
-                         VariableLengthRowsError)
-from . import units
-from . import unitbridge
-from .result import RomanInt, Result, Solutions
+from ..exceptions import (UnknownFunctionError,
+                          UnknownConstantError,
+                          UnknownUnitError,
+                          WrongNumberOfArgumentsError,
+                          VariableLengthRowsError)
+from .. import units
+from .. import unitbridge
+from ..result import RomanInt, Result, Solutions
+from .functions import FunctionList
 
 
 _X = sympy.Symbol("x")
@@ -433,123 +434,56 @@ class PlusSign(PrefixSymbol):
 
 class Function(Operator):
 
-    # If the function can handle units other than dimensionless,
-    # unit_support should True, otherwise False.
-    _D = collections.namedtuple("_D", ["canonical_name", "fn", "unit_support"])
-
-    _functions = {
-        # Trigonometric functions.
-        "sin": _D("sin", sympy.sin, False),
-        "cos": _D("cos", sympy.cos, False),
-        "tan": _D("tan", sympy.tan, False),
-        "cot": _D("cot", sympy.cot, False),
-        "sec": _D("sec", sympy.sec, False),
-        "csc": _D("cosec", sympy.csc, False),
-        "cosec": _D("cosec", sympy.csc, False),
-        # Inverse trigonometric functions.
-        "asin": _D("arcsin", sympy.asin, False),
-        "arcsin": _D("arcsin", sympy.asin, False),
-        "acos": _D("arccos", sympy.acos, False),
-        "arccos": _D("arccos", sympy.acos, False),
-        "atan": _D("arctan", sympy.atan, False),
-        "arctan": _D("arctan", sympy.atan, False),
-        "acot": _D("arccot", sympy.acot, False),
-        "arccot": _D("arccot", sympy.acot, False),
-        "asec": _D("arcsec", sympy.asec, False),
-        "arcsec": _D("arcsec", sympy.asec, False),
-        "acsc": _D("arccosec", sympy.acsc, False),
-        "arccsc": _D("arccosec", sympy.acsc, False),
-        "acosec": _D("arccosec", sympy.acsc, False),
-        "arccosec": _D("arccosec", sympy.acsc, False),
-        # Hyperbolic functions.
-        "sinh": _D("sinh", sympy.sinh, False),
-        "cosh": _D("cosh", sympy.cosh, False),
-        "tanh": _D("tanh", sympy.tanh, False),
-        "coth": _D("coth", sympy.coth, False),
-        "sech": _D("sech", lambda x: 1/sympy.cosh(x), False),
-        "csch": _D("cosech", lambda x: 1/sympy.sinh(x), False),
-        "cosech": _D("cosech", lambda x: 1/sympy.sinh(x), False),
-        # Inverse hyperbolic functions.
-        "asinh": _D("arsinh", sympy.asinh, False),
-        "arsinh": _D("arsinh", sympy.asinh, False),
-        "acosh": _D("arcosh", sympy.acosh, False),
-        "arcosh": _D("arcosh", sympy.acosh, False),
-        "atanh": _D("artanh", sympy.atanh, False),
-        "artanh": _D("artanh", sympy.atanh, False),
-        "acoth": _D("arcoth", sympy.acoth, False),
-        "arcoth": _D("arcoth", sympy.acoth, False),
-        "asech": _D("arsech", lambda x: sympy.acosh(1/x), False),
-        "arsech": _D("arsech", lambda x: sympy.acosh(1/x), False),
-        "acsch": _D("arcosech", lambda x: sympy.asinh(1/x), False),
-        "arcsch": _D("arcosech", lambda x: sympy.asinh(1/x), False),
-        "acosech": _D("arcosech", lambda x: sympy.asinh(1/x), False),
-        "arcosech": _D("arcosech", lambda x: sympy.asinh(1/x), False),
-        # e-function related.
-        "exp": _D("exp", sympy.exp, False),
-        "ln": _D("log", sympy.log, False),
-        "log": _D("log", sympy.log, False),
-        "log10": _D("log10", lambda x: sympy.log(x, 10), False),
-        "log2": _D("log2", lambda x: sympy.log(x, 2), False),
-        # Square root.
-        "sqrt": _D("√", lambda x: x**sympy.Rational(1/2), True),
-        "√": _D("√", lambda x: x**sympy.Rational(1/2), True),
-        # Error function.
-        "erf": _D("erf", sympy.erf, False),
-        "erfc": _D("erfc", sympy.erfc, False),
-        # Misc.
-        "abs": _D("abs", abs, True),
-        "floor": _D("floor", sympy.floor, False),
-        "ceil": _D("ceil", sympy.ceiling, False),
-        # Geometry.
-        "circle_area": _D("circle_area", lambda r: sympy.pi * r**2, True),
-        "circle_circ": _D("circle_circumference",
-                          lambda r: 2 * sympy.pi * r, True),
-        "circle_circumference": _D("circle_circumference",
-                                   lambda r: 2 * sympy.pi * r, True),
-        "sphere_vol": _D("sphere_volume",
-                         lambda r: sympy.Rational(4,3) * sympy.pi * r**3,
-                         True),
-        "sphere_volume": _D("sphere_volume",
-                            lambda r: sympy.Rational(4,3) * sympy.pi * r**3,
-                            True),
-        "sphere_surf": _D("sphere_surface",
-                          lambda r: 4 * sympy.pi * r**2,
-                          True),
-        "sphere_surface": _D("sphere_surface",
-                             lambda r: 4 * sympy.pi * r**2,
-                             True),
-    }
-
     @classmethod
     def process(cls, s, loc, toks):
-        # TODO: multiple arguments
+        name = toks[0][0]
         try:
-            fn_s, fn, unit_support = cls._functions[toks[0][0]]
+            fn = FunctionList.functions[name]
+            argmin = FunctionList.nargs_min[name]
+            argmax = FunctionList.nargs_max[name]
         except KeyError:
-            raise UnknownFunctionError(toks[0][0])
-        arg = toks[0][1]
-        return ParseResults([cls(fn_s, fn, arg, unit_support)])
+            raise UnknownFunctionError(name)
+        args = toks[0][1:]
+        if not (argmin <= len(args) <= argmax):
+            raise WrongNumberOfArgumentsError(name, len(args), argmin, argmax)
+        return ParseResults([cls(fn.canonical_name, fn.fn, args, fn.args)])
 
-    def __init__(self, fn_s, fn, arg, unit_support):
-        # TODO: multiple arguments
+    def __init__(self, fn_s, fn, args, argspec):
         self.fn_s = fn_s
         self.fn = fn
-        self.arg = arg
-        self.unit_support = unit_support
+        self.args = args
+        self.argspec = argspec
 
     def __str__(self):
-        return "{}({!s})".format(self.fn_s, self.arg)
+        return "{}({})".format(self.fn_s,
+                               ", ".join(str(arg) for arg in self.args))
 
     def evaluate(self):
-        arg, = self._eval(self.arg)
-        if (self.unit_support is True
-            or not isinstance(arg, unitbridge.Quantity)):
-            return self.fn(arg)
-        elif self.unit_support is False:
-            q = arg.convert_to("dimensionless")
-            return self.fn(q.magnitude)
-        else:
-            raise RuntimeError("This must not happen and is a bug (YuU0eJ).")
+        args = self._eval(*self.args)
+        args2 = []
+        for arg, argspec in zip(args, self.argspec):
+            if isinstance(arg, unitbridge.Quantity):
+                if not argspec.unit:
+                    arg = arg.convert_to("dimensionless").magnitude
+                    argtest = arg
+                else:
+                    argtest = arg.magnitude
+            else:
+                argtest = arg
+            # Check matrix/scalar.
+            if isinstance(argtest, sympy.Matrix):
+                if not argspec.matrix:
+                    raise ValueError(
+                        "Function {} does not accept matrices "
+                        "or vectors.".format(self.fn_s)
+                    )
+            elif not argspec.scalar:
+                raise ValueError(
+                    "Function {} does not accept scalars."
+                    "".format(self.fn_s)
+                )
+            args2.append(arg)
+        return self.fn(*args2)
 
 
 class Constant(Operator):
