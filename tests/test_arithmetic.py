@@ -33,7 +33,16 @@ def rand(min, max):
     return random.random() * (max-min) + min
 
 
-class TestStandaloneExpressions(unittest.TestCase):
+# Base-class for test. Implements float comparison.
+class TestCase(unittest.TestCase):
+    #TODO: unit support!
+    def assertFloatEqual(self, a, b, rtol=1e-5, atol=1e-8):
+        self.assertTrue(
+            abs(a - b) <= atol + rtol * abs(b)
+        )
+
+
+class TestStandaloneExpressions(TestCase):
 
     def test_negsign_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -41,7 +50,7 @@ class TestStandaloneExpressions(unittest.TestCase):
 
     def test_negsign_float(self):
         a = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("-{}", a), -a)
+        self.assertFloatEqual(pe("-{}", a), -a)
 
     def test_possign_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -49,7 +58,7 @@ class TestStandaloneExpressions(unittest.TestCase):
 
     def test_possign_float(self):
         a = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("+{}", a), +a)
+        self.assertFloatEqual(pe("+{}", a), +a)
 
     def test_plus_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -59,7 +68,7 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_plus_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("{} + {}", a, b), a + b)
+        self.assertFloatEqual(pe("{} + {}", a, b), a + b)
 
     def test_minus_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -69,7 +78,7 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_minus_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("{} - {}", a, b), a - b)
+        self.assertFloatEqual(pe("{} - {}", a, b), a - b)
 
     def test_multiply_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -80,20 +89,20 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_multiply_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("{} · {}", a, b), a * b)
-        self.assertAlmostEqual(pe("{} * {}", a, b), a * b)
+        self.assertFloatEqual(pe("{} · {}", a, b), a * b)
+        self.assertFloatEqual(pe("{} * {}", a, b), a * b)
 
     def test_divide_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
         b = random.randint(-sys.maxsize, sys.maxsize)
-        self.assertAlmostEqual(pe("{} ÷ {}", a, b), a / b)
-        self.assertAlmostEqual(pe("{} / {}", a, b), a / b)
+        self.assertFloatEqual(pe("{} ÷ {}", a, b), a / b)
+        self.assertFloatEqual(pe("{} / {}", a, b), a / b)
 
     def test_divide_float(self):
         a = rand(-1e6, 1e6)
         b = rand(-1e6, 1e6)
-        self.assertAlmostEqual(pe("{} ÷ {}", a, b), a / b)
-        self.assertAlmostEqual(pe("{} / {}", a, b), a / b)
+        self.assertFloatEqual(pe("{} ÷ {}", a, b), a / b)
+        self.assertFloatEqual(pe("{} / {}", a, b), a / b)
 
     def test_intdivide_int(self):
         a = random.randint(-sys.maxsize, sys.maxsize)
@@ -114,8 +123,8 @@ class TestStandaloneExpressions(unittest.TestCase):
     def test_exponent_float(self):
         b = rand(-500.0, 500.0)
         e = rand(-10.0, 10.0)
-        self.assertAlmostEqual(pe("({}) ** ({})", b, e), b ** e)
-        self.assertAlmostEqual(pe("({}) ^ ({})", b, e), b ** e)
+        self.assertFloatEqual(pe("({}) ** ({})", b, e), b ** e)
+        self.assertFloatEqual(pe("({}) ^ ({})", b, e), b ** e)
 
     def test_factorial(self):
         self.assertEqual(pe("0!"), 1)
@@ -124,10 +133,10 @@ class TestStandaloneExpressions(unittest.TestCase):
         a = random.randint(3, 100)
         self.assertEqual(pe("{}!", a), math.factorial(a))
         # Weirdly, there are factorials for rational numbers.
-        self.assertAlmostEqual(pe("(1/2)!"), 0.5*math.sqrt(math.pi))
+        self.assertFloatEqual(pe("(1/2)!"), 0.5*math.sqrt(math.pi))
 
 
-class TestResultType(unittest.TestCase):
+class TestResultType(TestCase):
 
     def test_int(self):
         self.assertIsInstance(pe("1"), sympy.Integer)
@@ -151,17 +160,17 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("1.e-4"), sympy.Float)
         self.assertIsInstance(pe("1.0e+4"), sympy.Float)
         self.assertIsInstance(pe("1.0e-4"), sympy.Float)
-        self.assertAlmostEqual(pe("1."), 1.0)
-        self.assertAlmostEqual(pe("01."), 1.0)
-        self.assertAlmostEqual(pe("1.0"), 1.0)
-        self.assertAlmostEqual(pe("1e4"), 1e4)
-        self.assertAlmostEqual(pe("1e+4"), 1e4)
-        self.assertAlmostEqual(pe("1e-4"), 1e-4)
-        self.assertAlmostEqual(pe("1.e4"), 1e4)
-        self.assertAlmostEqual(pe("1.e+4"), 1e4)
-        self.assertAlmostEqual(pe("1.e-4"), 1e-4)
-        self.assertAlmostEqual(pe("1.0e+4"), 1e4)
-        self.assertAlmostEqual(pe("1.0e-4"), 1e-4)
+        self.assertFloatEqual(pe("1."), 1.0)
+        self.assertFloatEqual(pe("01."), 1.0)
+        self.assertFloatEqual(pe("1.0"), 1.0)
+        self.assertFloatEqual(pe("1e4"), 1e4)
+        self.assertFloatEqual(pe("1e+4"), 1e4)
+        self.assertFloatEqual(pe("1e-4"), 1e-4)
+        self.assertFloatEqual(pe("1.e4"), 1e4)
+        self.assertFloatEqual(pe("1.e+4"), 1e4)
+        self.assertFloatEqual(pe("1.e-4"), 1e-4)
+        self.assertFloatEqual(pe("1.0e+4"), 1e4)
+        self.assertFloatEqual(pe("1.0e-4"), 1e-4)
         self.assertIsInstance(pe("-1."), sympy.Float)
         self.assertIsInstance(pe("-01."), sympy.Float)
         self.assertIsInstance(pe("-1.0"), sympy.Float)
@@ -173,17 +182,17 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("-1.e-4"), sympy.Float)
         self.assertIsInstance(pe("-1.0e+4"), sympy.Float)
         self.assertIsInstance(pe("-1.0e-4"), sympy.Float)
-        self.assertAlmostEqual(pe("-1."), -1.0)
-        self.assertAlmostEqual(pe("-01."), -1.0)
-        self.assertAlmostEqual(pe("-1.0"), -1.0)
-        self.assertAlmostEqual(pe("-1e4"), -1e4)
-        self.assertAlmostEqual(pe("-1e+4"), -1e4)
-        self.assertAlmostEqual(pe("-1e-4"), -1e-4)
-        self.assertAlmostEqual(pe("-1.e4"), -1e4)
-        self.assertAlmostEqual(pe("-1.e+4"), -1e4)
-        self.assertAlmostEqual(pe("-1.e-4"), -1e-4)
-        self.assertAlmostEqual(pe("-1.0e+4"), -1e4)
-        self.assertAlmostEqual(pe("-1.0e-4"), -1e-4)
+        self.assertFloatEqual(pe("-1."), -1.0)
+        self.assertFloatEqual(pe("-01."), -1.0)
+        self.assertFloatEqual(pe("-1.0"), -1.0)
+        self.assertFloatEqual(pe("-1e4"), -1e4)
+        self.assertFloatEqual(pe("-1e+4"), -1e4)
+        self.assertFloatEqual(pe("-1e-4"), -1e-4)
+        self.assertFloatEqual(pe("-1.e4"), -1e4)
+        self.assertFloatEqual(pe("-1.e+4"), -1e4)
+        self.assertFloatEqual(pe("-1.e-4"), -1e-4)
+        self.assertFloatEqual(pe("-1.0e+4"), -1e4)
+        self.assertFloatEqual(pe("-1.0e-4"), -1e-4)
 
     def test_operations(self):
         # Simply ensure that everything which should be integer, is.
@@ -204,7 +213,7 @@ class TestResultType(unittest.TestCase):
         self.assertIsInstance(pe("1 // 1."), sympy.Integer)
 
 
-class TestParser(unittest.TestCase):
+class TestParser(TestCase):
 
     def test_chain_plus(self):
         s = "1 + 2 + 3 + 4 + 5"
@@ -334,39 +343,39 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("-(1+1)"), -2)
 
     def test_nested_functions(self):
-        self.assertAlmostEqual(pe("cos(sin(1))"), math.cos(math.sin(1.0)))
+        self.assertFloatEqual(pe("cos(sin(1))"), math.cos(math.sin(1.0)))
 
     def test_added_functions(self):
-        self.assertAlmostEqual(pe("cos(1) + sin(1)"),
-                               math.cos(1.0) + math.sin(1.0))
+        self.assertFloatEqual(pe("cos(1) + sin(1)"),
+                              math.cos(1.0) + math.sin(1.0))
 
     def test_multiplied_functions(self):
-        self.assertAlmostEqual(pe("cos(1) * sin(1)"),
-                               math.cos(1.0) * math.sin(1.0))
+        self.assertFloatEqual(pe("cos(1) * sin(1)"),
+                              math.cos(1.0) * math.sin(1.0))
 
     def test_function_combinations(self):
-        self.assertAlmostEqual(pe("exp(2.3) ^ log(2.3)"),
-                               math.exp(2.3) ** math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) ** log(2.3)"),
-                               math.exp(2.3) ** math.log(2.3))
-        self.assertAlmostEqual(pe("-log(2.3)"), -math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) + log(2.3)"),
-                               math.exp(2.3) + math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) - log(2.3)"),
-                               math.exp(2.3) - math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) * log(2.3)"),
-                               math.exp(2.3) * math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) / log(2.3)"),
-                               math.exp(2.3) / math.log(2.3))
-        self.assertAlmostEqual(pe("exp(2.3) // log(2.3)"),
-                         int(math.exp(2.3) // math.log(2.3)))
-        self.assertAlmostEqual(pe("log(exp(4))!"),
-                               math.factorial(math.log(math.exp(4))))
+        self.assertFloatEqual(pe("exp(2.3) ^ log(2.3)"),
+                              math.exp(2.3) ** math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) ** log(2.3)"),
+                              math.exp(2.3) ** math.log(2.3))
+        self.assertFloatEqual(pe("-log(2.3)"), -math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) + log(2.3)"),
+                              math.exp(2.3) + math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) - log(2.3)"),
+                              math.exp(2.3) - math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) * log(2.3)"),
+                              math.exp(2.3) * math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) / log(2.3)"),
+                              math.exp(2.3) / math.log(2.3))
+        self.assertFloatEqual(pe("exp(2.3) // log(2.3)"),
+                              int(math.exp(2.3) // math.log(2.3)))
+        self.assertFloatEqual(pe("log(exp(4))!"),
+                              math.factorial(math.log(math.exp(4))))
 
     def test_term_in_function(self):
-        self.assertAlmostEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
-        self.assertAlmostEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
-        self.assertAlmostEqual(pe("ln(2 ^ 3)"), math.log(2**3))
+        self.assertFloatEqual(pe("sin(1 + 1)"), math.sin(1 + 1))
+        self.assertFloatEqual(pe("sqrt(3 * 2)"), math.sqrt(3 * 2))
+        self.assertFloatEqual(pe("ln(2 ^ 3)"), math.log(2**3))
         self.assertAlmostEqual(pe("sin(3 * cm / (5 * in))"),
                                math.sin(3*ureg.centimeter / (5*ureg.inch)))
         self.assertAlmostEqual(pe("sin(3cm / (5in))"),
@@ -393,26 +402,26 @@ class TestParser(unittest.TestCase):
 
     def test_realbases(self):
         # hex
-        self.assertAlmostEqual(pe("0xA.8"), 10.5)
-        self.assertAlmostEqual(pe("0x0.5555555555555555555555555"),
-                               0.3333333333333333333333333333)
-        self.assertAlmostEqual(pe("0x0.4"), 0.25)
-        self.assertAlmostEqual(pe("0x0.2"), 0.125)
-        self.assertAlmostEqual(pe("0x0.1"), 0.0625)
+        self.assertFloatEqual(pe("0xA.8"), 10.5)
+        self.assertFloatEqual(pe("0x0.5555555555555555555555555"),
+                              0.3333333333333333333333333333)
+        self.assertFloatEqual(pe("0x0.4"), 0.25)
+        self.assertFloatEqual(pe("0x0.2"), 0.125)
+        self.assertFloatEqual(pe("0x0.1"), 0.0625)
         # oct
-        self.assertAlmostEqual(pe("0o1.01"), 1+1/64)
-        self.assertAlmostEqual(pe("0o0.1"), 1/8)
-        self.assertAlmostEqual(pe("0o0.2"), 1/4)
-        self.assertAlmostEqual(pe("0o0.4"), 1/2)
-        self.assertAlmostEqual(pe("0o0.5"), 5/8)
-        self.assertAlmostEqual(pe("0o0.6"), 3/4)
-        self.assertAlmostEqual(pe("0o0.7"), 7/8)
+        self.assertFloatEqual(pe("0o1.01"), 1+1/64)
+        self.assertFloatEqual(pe("0o0.1"), 1/8)
+        self.assertFloatEqual(pe("0o0.2"), 1/4)
+        self.assertFloatEqual(pe("0o0.4"), 1/2)
+        self.assertFloatEqual(pe("0o0.5"), 5/8)
+        self.assertFloatEqual(pe("0o0.6"), 3/4)
+        self.assertFloatEqual(pe("0o0.7"), 7/8)
         # bin
-        self.assertAlmostEqual(pe("0b1.1"), 3/2)
-        self.assertAlmostEqual(pe("0b0.1"), 1/2)
-        self.assertAlmostEqual(pe("0b0.01"), 1/4)
-        self.assertAlmostEqual(pe("0b0.11"), 3/4)
-        self.assertAlmostEqual(pe("0b0.10"), 1/2)
+        self.assertFloatEqual(pe("0b1.1"), 3/2)
+        self.assertFloatEqual(pe("0b0.1"), 1/2)
+        self.assertFloatEqual(pe("0b0.01"), 1/4)
+        self.assertFloatEqual(pe("0b0.11"), 3/4)
+        self.assertFloatEqual(pe("0b0.10"), 1/2)
 
     def test_romanint(self):
         # 1
@@ -523,7 +532,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(pe("0rmMMmCmlxVIIi"), 4968)
         # TODO: test invalid numerals!!!!!!!         
 
-class TestUnits(unittest.TestCase):
+class TestUnits(TestCase):
     def test_conversion(self):
         self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
         self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
@@ -544,7 +553,7 @@ class TestUnits(unittest.TestCase):
                                2 ** (2*ureg.meter / (3*ureg.inch)))
         weird1 = pe("(2m)^(2m/3in)")
         ref1 = (2*ureg.meter) ** (2*ureg.meter / (3*ureg.inch))
-        self.assertAlmostEqual(weird1.magnitude, ref1.magnitude)
+        self.assertFloatEqual(weird1.magnitude, ref1.magnitude)
         self.assertEqual(weird1.units, ref1.units)
 
     def test_addition(self):
@@ -554,7 +563,7 @@ class TestUnits(unittest.TestCase):
                                (ureg.cm - ureg.inch).to(ureg.meter))
 
 
-class TestFunctions(unittest.TestCase):
+class TestFunctions(TestCase):
     def test_trig(self):
         a = rand(-1e6, 1e6)
         # sin
@@ -563,14 +572,14 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(pe("sin(pi)"), 0)
         self.assertEqual(pe("sin(3pi/2)"), -1)
         self.assertEqual(pe("sin(2pi)"), 0)
-        self.assertAlmostEqual(pe("sin({})", a), math.sin(a))
+        self.assertFloatEqual(pe("sin({})", a), math.sin(a))
         # cos
         self.assertEqual(pe("cos(0)"), 1)
         self.assertEqual(pe("cos(pi/2)"), 0)
         self.assertEqual(pe("cos(pi)"), -1)
         self.assertEqual(pe("cos(3pi/2)"), 0)
         self.assertEqual(pe("cos(2pi)"), 1)
-        self.assertAlmostEqual(pe("cos({})", a), math.cos(a))
+        self.assertFloatEqual(pe("cos({})", a), math.cos(a))
         # tan
         self.assertEqual(pe("tan(0)"), 0)
         self.assertEqual(pe("tan(pi/4)"), 1)
@@ -587,27 +596,30 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(pe("abs(-2in)"), 2*ureg.inch)
 
 
-class TestEquality(unittest.TestCase):
+class TestEquality(TestCase):
     def test_identities(self):
         #
         self.assertEqual(pe("cos(x) + i*sin(x) = exp(x*i)"), True)
         # pq-formula.
         solutions = sorted(pe("x**2 + 3*x - 4 = 0").solutions)
         self.assertEqual(len(solutions), 2)
-        self.assertAlmostEqual(solutions[0], -4)
-        self.assertAlmostEqual(solutions[1], 1)
+        self.assertFloatEqual(solutions[0], -4)
+        self.assertFloatEqual(solutions[1], 1)
 
     def test_with_units(self):
         self.assertEqual(pe("1cm = 1cm"), True)
         self.assertEqual(pe("100cm = 1m"), True)
         self.assertEqual(pe("1m = 100cm"), True)
+        self.assertEqual(pe("1cm = 2cm"), False)
+        self.assertEqual(pe("1cm = 1in"), False)
+        self.assertEqual(pe("1cm = 1kg"), False)
+        # Converting. This depends on float precision and may fail
+        # until unit support is overhauled.
+        print("TODO: failures currently expected after this line.")
         self.assertEqual(pe("1ft = 12in"), True)
         self.assertEqual(pe("12in = 1ft"), True)
         self.assertEqual(pe("1in = 2.54cm"), True)
         self.assertEqual(pe("2.54cm = 1in"), True)
-        self.assertEqual(pe("1cm = 2cm"), False)
-        self.assertEqual(pe("1cm = 1in"), False)
-        self.assertEqual(pe("1cm = 1kg"), False)
 
     def test_solve_with_units(self):
         # Does not work ATM
