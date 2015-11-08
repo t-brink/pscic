@@ -30,9 +30,12 @@ from .units import Q_
 # These are reserved words that cannot be variables, constants, or units.
 keyword = oneOf("to")
 
+# Special symbols for currencies.
+currency_symbols = oneOf("€ £ $ ₪ ¥ ￥ ₩ ￦ ฿ ₹")
+
 # Identifier, must start with unicode letter, can then contain unicode
 # letter, unicode number, or underscore.
-identifier = NotAny( keyword ) + Regex(r'[^\W\d_]\w*')
+identifier = currency_symbols | ( NotAny( keyword ) + Regex(r'[^\W\d_]\w*') )
 
 # Operands
 integer = Word(nums).setParseAction(operators.process_int)

@@ -25,10 +25,15 @@ UndefinedUnitError = pint.UndefinedUnitError
 
 def _init():
     # Add currencies to registry.
+    aliases = {"PLN": "zł"}
     # TODO: make the download thing optional! ship default .xml!
     # TODO: error handling
     data = currency.get_exchange_rates()
     ureg.define("EUR = [currency]")
     for cur, rate in data["rates"].items():
-        ureg.define("{} = {} * EUR".format(cur, 1/rate))
+        if cur in aliases:
+            ureg.define("{} = {} * EUR = {}".format(aliases[cur], 1/rate,
+                                                    cur))
+        else:
+            ureg.define("{} = {} * EUR".format(cur, 1/rate))
 

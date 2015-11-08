@@ -524,6 +524,7 @@ class Constant(Operator):
 
     @classmethod
     def process(cls, s, loc, toks):
+        # Try to find constant.
         try:
             name, value = cls._constants_and_variables[toks[0]]
         except KeyError:
@@ -548,10 +549,32 @@ class Constant(Operator):
 class Unit(Constant):
     # A special kind of constant.
 
+    # TODO: the following symbols are used for different currencies:
+    #        $ ¥ ₩
+    #       (although north koreans probably don't care about my software)
+    #       let the user decide which means which (politics...)
+    _currency_symbols = {"€": "EUR",
+                         "£": "GBP",
+                         "$": "USD", # :-/
+                         "₪": "ILS",
+                         "¥": "JPY",
+                         "￥": "JPY",
+                         "₩": "KRW",
+                         "￦": "KRW",
+                         "฿": "THB",
+                         "₹": "INR",
+    }
+
     @classmethod
     def process(cls, s, loc, toks):
+        # Replace currency symbols.
+        if toks[0] in cls._currency_symbols:
+            token = cls._currency_symbols[toks[0]]
+        else:
+            token = toks[0]
+        # Go on.
         try:
-            value = units.ureg(toks[0])
+            value = units.ureg(token)
         except units.UndefinedUnitError:
             raise UnknownUnitError(toks[0])
         name = "{:~}".format(value).lstrip("1").lstrip() # remove leading 1
