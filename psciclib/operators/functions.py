@@ -66,6 +66,11 @@ def ensure_sq_matrix(M):
     return M
 
 
+def raise_(x):
+    raise RuntimeError("This is a test error for debugging. "
+                       "Argument was: {!s}".format(x))
+
+
 class FunctionList:
 
     _f = collections.namedtuple(
@@ -149,6 +154,8 @@ class FunctionList:
            (ArgCap(True, True, True),)),
         _f("transpose", (), lambda x: ensure_matrix(x).transpose(),
            (ArgCap(True, True, True),)),
+        # For debugging.
+        _f("raise_", (), raise_, (ArgCap(True, True, True),)),
     ]
 
     @classmethod

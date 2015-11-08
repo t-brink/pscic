@@ -134,10 +134,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.output_widget.update_output(e, None, None, None, None)
             return
         except Exception as e:
-            QtWidgets.QMessageBox.critical(
-                self, "Unhandled Exception", str(e)
+            import traceback
+            s = (
+                str(e) + "<br><br>"
+                + traceback.format_exc().replace("\n", "<br>")
             )
-            raise e
+            QtWidgets.QMessageBox.critical(
+                self, "Unhandled Exception", s
+            )
+            return
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
         try:
@@ -146,10 +151,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.output_widget.update_output(e, None, None, None, None)
             return
         except Exception as e:
-            QtWidgets.QMessageBox.critical(
-                self, "Unhandled Exception", str(e)
+            import traceback
+            s = (
+                str(e) + "<br><br>"
+                + traceback.format_exc().replace("\n", "<br>")
             )
-            raise e
+            QtWidgets.QMessageBox.critical(
+                self, "Unhandled Exception", s
+            )
+            return
         # Output.
         self.output_widget.update_output(
             val, self.calc_exact, self.calc_numeral_system,
