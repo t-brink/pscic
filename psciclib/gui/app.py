@@ -134,14 +134,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.output_widget.update_output(e, None, None, None, None)
             return
         except Exception as e:
-            import traceback
-            s = (
-                str(e) + "<br><br>"
-                + traceback.format_exc().replace("\n", "<br>")
-            )
-            QtWidgets.QMessageBox.critical(
-                self, "Unhandled Exception", s
-            )
+            from .widgets.exceptionbox import exception_box
+            exception_box(e, self)
             return
         self.input_widget.set_parsed_field(tree)
         # Evaluate.
@@ -151,14 +145,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.output_widget.update_output(e, None, None, None, None)
             return
         except Exception as e:
-            import traceback
-            s = (
-                str(e) + "<br><br>"
-                + traceback.format_exc().replace("\n", "<br>")
-            )
-            QtWidgets.QMessageBox.critical(
-                self, "Unhandled Exception", s
-            )
+            from .widgets.exceptionbox import exception_box
+            exception_box(e, self)
             return
         # Output.
         self.output_widget.update_output(

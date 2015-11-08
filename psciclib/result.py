@@ -316,6 +316,15 @@ class Result:
                           for i in raw_result.solutions)
                 + '</table>'
             )
+        elif isinstance(raw_result, sympy.Equality):
+            # Unsolved equality.
+            return (
+                cls._as_html(raw_result.lhs,
+                             mode, numeral_system, digits, units)
+                + " = "
+                + cls._as_html(raw_result.rhs,
+                               mode, numeral_system, digits, units)
+            )
         elif isinstance(raw_result, (sympy.Rational, sympy.Float)):
             # Those need neither simplify() nor evalf() right now.
             result = raw_result
