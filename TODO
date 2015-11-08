@@ -114,7 +114,18 @@ In order:
 ** document every function, unit, symbol, variable and (optionally) show
    this somewhere.
 ** Math printing should be done with QWebKit + MathJax (local
-   copy). Hopefully this is fast enough, otherwise we need to get tricky!
+   copy). Hopefully this is fast enough, otherwise we need to get
+   tricky!
+*** mathjax is pretty slow but works (ca. 500ms delay before
+   finished....)
+*** katex is great but does not seem to work with QWebView :-(
+*** QWebEngineView is not in Debian????? Because it is a packaging nightmare.
+    That means we should not rely on *any* webview right now!
+*** see
+   https://stackoverflow.com/questions/14110709/creating-images-of-mathematical-expressions-from-tex-using-matplotlib
+   or
+   https://stackoverflow.com/questions/14110709/creating-images-of-mathematical-expressions-from-tex-using-matplotlib#14163131
+   for a sad, sad workaround
 ** pretty-printer doesn't set intelligent parentheses, this should be done!
 ** to best units / to base units  should be toggle-buttons (mutually
    exclusive!)
