@@ -72,6 +72,10 @@ class Quantity(AtomicExpr):
         # Convert.
         return self.__class__(Q_(factor*self.magnitude, unit))
 
+    def replace_magnitude(self, new_magnitude):
+        """Return quantity with same unit but different magnitude."""
+        return self.__class__(Q_(new_magnitude, self.units))
+
     def __abs__(self):
         return self.__class__(Q_(sympy.Abs(self.magnitude), self.units))
 

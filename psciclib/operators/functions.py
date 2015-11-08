@@ -17,6 +17,8 @@ import collections
 
 import sympy
 
+from .. import unitbridge
+
 
 class ArgCap:
     """What can this function argument accept?
@@ -34,6 +36,34 @@ class ArgCap:
         self.matrix = matrix
         self.unit = unit
         self.optional = optional
+
+
+def abs_(x):
+    xx = x.magnitude if isinstance(x, unitbridge.Quantity) else x
+    xx = xx.norm() if isinstance(xx, sympy.Matrix) else abs(xx)
+    return x.replace_magnitude(xx) if isinstance(x, unitbridge.Quantity) else xx
+
+
+def ensure_matrix(M):
+    if isinstance(M, unitbridge.Quantity):
+        m = M.magnitude
+        if isinstance(m, sympy.Matrix):
+            u = M.replace_magnitude(1)
+            return sympy.Matrix([[i * u for i in m.row(row)]
+                                 for row in range(m.rows)])
+        else:
+            return sympy.Matrix([M])
+    elif not isinstance(M, sympy.Matrix):
+        return sympy.Matrix([M])
+    else:
+        return M
+
+
+def ensure_sq_matrix(M):
+    M = ensure_matrix(M)
+    if not M.is_square:
+        raise ValueError("det only works with square matrices")
+    return M
 
 
 class FunctionList:
@@ -96,8 +126,7 @@ class FunctionList:
         _f("erf", (), sympy.erf, (ArgCap(True, False, False),)),
         _f("erfc", (), sympy.erfc, (ArgCap(True, False, False),)),
         # Misc.
-        #TODO: support absolutes for matrices in the sense of norm()   
-        _f("abs", (), abs, (ArgCap(True, False, True),)),
+        _f("abs", (), abs_, (ArgCap(True, True, True),)),
         _f("floor", (), sympy.floor, (ArgCap(True, False, False),)),
         _f("ceil", ("ceiling",), sympy.ceiling, (ArgCap(True, False, False),)),
         # Geometry.
@@ -113,6 +142,13 @@ class FunctionList:
         _f("sphere_surface", ("sphere_surf", ),
            lambda r: 4 * sympy.pi * r**2,
            (ArgCap(True, False, True),)),
+        # Linear algebra.
+        _f("det", (), lambda x: ensure_sq_matrix(x).det(),
+           (ArgCap(True, True, True),)),
+        _f("trace", (), lambda x: ensure_sq_matrix(x).trace(),
+           (ArgCap(True, True, True),)),
+        _f("transpose", (), lambda x: ensure_matrix(x).transpose(),
+           (ArgCap(True, True, True),)),
     ]
 
     @classmethod
