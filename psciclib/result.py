@@ -241,6 +241,12 @@ class Result:
 
     @classmethod
     def _decimal_as_html(cls, number, numeral_system, digits):
+        # Special case some floats.
+        if number == float("inf"):
+            return "∞"
+        elif number == float("-inf"):
+            return "-∞"
+        # "Normal" floats.
         if numeral_system == NumeralSystem.decimal:
             # Set precision.
             f = str(number.evalf(n=digits))
@@ -280,6 +286,14 @@ class Result:
         if atom == sympy.I:
             # There is no float representation, return immediately.
             return "i"
+        elif atom == sympy.zoo:
+            return "z∞"
+        elif atom == sympy.oo:
+            return "∞"
+        elif atom == -sympy.oo: # this is another type even
+            return "-∞"
+        elif isinstance(atom, sympy.numbers.NaN):
+            return "NaN"
         # Exact or float?
         if mode == Mode.to_float:
             atom = atom.evalf(digits)
@@ -329,12 +343,13 @@ class Result:
             # Those need neither simplify() nor evalf() right now.
             result = raw_result
         else:
-            # Try to simplify.
+            # Try to simplify first.
+            result = raw_result.simplify()
             if mode == Mode.to_float:
-                result = raw_result.evalf(digits*10) # precision will be
-                                                     # lowered later.
+                result = result.evalf(digits*10) # precision will be
+                                                 # lowered later.
             elif mode == Mode.try_exact:
-                result = raw_result.simplify()
+                result = result
             else:
                 raise RuntimeError(
                     "Mode is {}, but we can't handle it. "

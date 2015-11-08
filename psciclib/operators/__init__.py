@@ -151,9 +151,24 @@ class Operator(metaclass=abc.ABCMeta):
         otherwise pass it back as is.
 
         """
-        return tuple((arg.evaluate()
-                      if isinstance(arg, Operator)
-                      else arg)
+        def my_eval(arg):
+            if isinstance(arg, Operator):
+                return arg.evaluate()
+            elif isinstance(arg, sympy.Float) and arg.is_zero:
+                # If the float is zero, replace by sympy Integer
+                # 0. This will improve some corner cases with division
+                # by zero. The reason is, that sympy.Float follows
+                # IEEE 754 by returning infinity on division by zero:
+                # 1.0/0.0 = oo, -1.0/0.0 = -oo. The problem is, that
+                # there is no concept of negative zero, making the
+                # whole thing wrong. Further, we do not have a concept
+                # of negative zero in this program here, making it
+                # double-stupid. Hence return an integer with sane
+                # semantics.
+                return sympy.Integer(0)
+            else:
+                return arg
+        return tuple(my_eval(arg)
                      for arg in args)
 
 
@@ -497,6 +512,11 @@ class Constant(Operator):
         "i": _D("i", sympy.I),
         "pi": _D("π", sympy.pi),
         "π": _D("π", sympy.pi),
+        "oo": _D("∞", sympy.oo),
+        "inf": _D("∞", sympy.oo),
+        "∞": _D("∞", sympy.oo),
+        "zoo": _D("z∞", sympy.zoo),
+        "z∞": _D("z∞", sympy.zoo),
 
         # Variables.
         "x": _D("x", _X),
