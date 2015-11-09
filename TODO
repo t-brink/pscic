@@ -26,6 +26,7 @@ In order:
 *** can't think of something nicer and it works for other weird input
     formats, too. Can also do 0xFF = x{FF}, 0o455 = o{455}, and
     0b1001 = b{1001} then (although the 0xFF thing stays canonical).
+** there is unicode for extended roman numerals (> 5000), perhaps use that???
 
 * improve startup time:
   https://files.bemusement.org/talks/OSDC2008-FastPython/
@@ -113,20 +114,12 @@ In order:
 ** a unit/constant/function/symbol selector (instead of a keypad-thingy)
 ** document every function, unit, symbol, variable and (optionally) show
    this somewhere.
-** Math printing should be done with QWebKit + MathJax (local
-   copy). Hopefully this is fast enough, otherwise we need to get
-   tricky!
-*** mathjax is pretty slow but works (ca. 500ms delay before
-   finished....)
+** Math printing could be better, but this is hard. Good enough for now.
+*** QWebView + mathjax is pretty slow but works (ca. 500ms delay before
+    finished....)
 *** katex is great but does not seem to work with QWebView :-(
 *** QWebEngineView is not in Debian????? Because it is a packaging nightmare.
     That means we should not rely on *any* webview right now!
-*** see
-   https://stackoverflow.com/questions/14110709/creating-images-of-mathematical-expressions-from-tex-using-matplotlib
-   or
-   https://stackoverflow.com/questions/14110709/creating-images-of-mathematical-expressions-from-tex-using-matplotlib#14163131
-   for a sad, sad workaround
-** pretty-printer doesn't set intelligent parentheses, this should be done!
 ** to best units / to base units  should be toggle-buttons (mutually
    exclusive!)
 

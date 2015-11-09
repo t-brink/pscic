@@ -156,6 +156,8 @@ class FunctionList:
            (ArgCap(True, True, True),)),
         # For debugging.
         _f("raise_", (), raise_, (ArgCap(True, True, True),)),
+        _f("complicated_", (), lambda x: sympy.sin(x ** 4) ** (3 ** x) + sympy.Rational(5,2) + (x / sympy.exp(x) )**x + x ** sympy.Rational(1,2) + x ** sympy.Rational(1214,29898299),
+           (ArgCap(True, True, True),)),
     ]
 
     @classmethod

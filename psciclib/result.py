@@ -15,10 +15,9 @@
 
 """Object to store the result of a calculation."""
 
-# TODO: pretty-printing code could go here?
-
 import enum
 import math
+import collections
 
 import sympy
 
@@ -101,6 +100,22 @@ class Result:
     """
     Store the original input string, the parsed expression, and its result.
     """
+
+    # What is the surrounding operation? Needed to decide if we need
+    # parentheses.
+    class _Surr(enum.Enum):
+        none = 1 # no parentheses needed, ever
+        addition = 2
+        multiplication = 3
+        exp_base = 4
+        exp_exp = 5
+        function_call = 6
+
+    # This class stores some info for pretty-printing. It is used to
+    # detect if we need parenthesis and to avoid nested <sup>.
+    _Context = collections.namedtuple("_context",
+                                      ["is_exponent", "surrounding_op"])
+
     def __init__(self, input_str, parsed, raw_result):
         self.input_str = input_str
         self.parsed = parsed
@@ -343,13 +358,12 @@ class Result:
             # Those need neither simplify() nor evalf() right now.
             result = raw_result
         else:
-            # Try to simplify first.
-            result = raw_result.simplify()
             if mode == Mode.to_float:
-                result = result.evalf(digits*10) # precision will be
-                                                 # lowered later.
+                result = raw_result.evalf(digits*10) # precision will be
+                                                     # lowered later.
             elif mode == Mode.try_exact:
-                result = result
+                # Try to simplify first.
+                result = raw_result.simplify()
             else:
                 raise RuntimeError(
                     "Mode is {}, but we can't handle it. "
@@ -357,8 +371,7 @@ class Result:
                     "".format(mode)
                 )
         # Recurse through expression.
-        def printer(expr):
-            # TODO: be intelligent about parentheses!
+        def printer(expr, context):
             # TODO: big parentheses!
             if isinstance(expr, sympy.Symbol):
                 return "<i>" + str(expr) + "</i>"
@@ -379,9 +392,21 @@ class Result:
                                        "".format(units))
                 us = "{:~H}".format(u).lstrip("1").lstrip(" ")
                 if us == "dimensionless":
-                    return printer(m)
+                    return printer(m, context) # keeps context.
+                elif (context.surrounding_op == cls._Surr.exp_base
+                      or
+                      (
+                          context.surrounding_op == cls._Surr.exp_exp
+                          and
+                          context.is_exponent > 1
+                      )):
+                    ctxt = cls._Context(context.is_exponent,
+                                        cls._Surr.multiplication)
+                    return "(" + printer(m, ctxt) + " " + us + ")"
                 else:
-                    return printer(m) + " " + us
+                    ctxt = cls._Context(context.is_exponent,
+                                        cls._Surr.multiplication)
+                    return printer(m, ctxt) + " " + us
             elif isinstance(expr, sympy.Float):
                 return cls._decimal_as_html(expr, numeral_system, digits)
             elif isinstance(expr, sympy.Integer):
@@ -389,20 +414,92 @@ class Result:
             elif isinstance(expr, sympy.Rational):
                 if mode == Mode.to_float:
                     return cls._decimal_as_html(expr, numeral_system, digits)
+                elif expr == sympy.Rational(1,2):
+                    return "½"
+                elif expr == sympy.Rational(1,3):
+                    return "⅓"
+                elif expr == sympy.Rational(1,4):
+                    return "¼"
+                elif expr == sympy.Rational(1,5):
+                    return "⅕"
+                elif expr == sympy.Rational(1,6):
+                    return "⅙"
+                elif expr == sympy.Rational(1,7):
+                    return "⅐"
+                elif expr == sympy.Rational(1,8):
+                    return "⅛"
+                elif expr == sympy.Rational(1,9):
+                    return "⅑"
+                elif expr == sympy.Rational(1,10):
+                    return "⅒"
+                elif expr == sympy.Rational(1,10):
+                    return "⅒"
+                elif expr == sympy.Rational(2,3):
+                    return "⅔"
+                elif expr == sympy.Rational(3,4):
+                    return "¾"
+                elif expr == sympy.Rational(3,4):
+                    return "¾"
+                elif expr == sympy.Rational(2,5):
+                    return "⅖"
+                elif expr == sympy.Rational(3,5):
+                    return "⅗"
+                elif expr == sympy.Rational(4,5):
+                    return "⅘"
+                elif expr == sympy.Rational(5,6):
+                    return "⅚"
+                elif expr == sympy.Rational(3,8):
+                    return "⅜"
+                elif expr == sympy.Rational(5,8):
+                    return "⅝"
+                elif expr == sympy.Rational(7,8):
+                    return "⅞"
+                elif context.is_exponent:
+                    if (context.surrounding_op == cls._Surr.exp_base
+                        or
+                        (context.surrounding_op == cls._Surr.exp_exp
+                         and
+                         context.is_exponent > 1
+                         )):
+                        pre = "("
+                        post = ")"
+                    else:
+                        pre = ""
+                        post = ""
+                    mid = "/"
+                elif context.surrounding_op == cls._Surr.exp_base:
+                    # TODO: fraction sucks in HTML :-(
+                    pre = "(<sup>"
+                    mid = "</sup>&frasl;<sub>"
+                    post = "</sub>)"
                 else:
                     # TODO: fraction sucks in HTML :-(
-                    return (
-                        "<sup>"
-                        + cls._integer_as_html(expr.p, numeral_system, digits)
-                        + "</sup>&frasl;<sub>"
-                        + cls._integer_as_html(expr.q, numeral_system, digits)
-                        + "</sub>"
-                    )
+                    pre = "<sup>"
+                    mid = "</sup>&frasl;<sub>"
+                    post = "</sub>"
+                return (
+                    pre
+                    + cls._integer_as_html(expr.p, numeral_system, digits)
+                    + mid
+                    + cls._integer_as_html(expr.q, numeral_system, digits)
+                    + post
+                )
             elif isinstance(expr, sympy.Atom):
                 return cls._atom_as_html(expr, mode, numeral_system, digits)
             elif isinstance(expr, sympy.Add):
-                return "(" + " + ".join(printer(summand)
-                                        for summand in expr.args) + ")"
+                ctxt = cls._Context(context.is_exponent,
+                                    cls._Surr.addition)
+                if (context.surrounding_op in {cls._Surr.multiplication,
+                                               cls._Surr.exp_base}
+                    or
+                    (context.surrounding_op == cls._Surr.exp_exp
+                     and
+                     context.is_exponent > 1)):
+                    return "(" + " + ".join(printer(summand, ctxt)
+                                            for summand in expr.args) + ")"
+                else:
+                    return " + ".join(printer(summand, ctxt)
+                                      for summand in expr.args)
             elif isinstance(expr, sympy.Mul):
                 # TODO: fraction (investigate nested Pow)!
                 # TODO: leave out multiplication sign before constant!
@@ -410,28 +507,54 @@ class Result:
                 if not args:
                     return "1"
                 elif len(args) == 1:
-                    return printer(args[0])
+                    return printer(args[0], context)
                 elif len(args) == 2 and args[0] == -1:
                     # TODO: hopefully the second arg never has a minus
                     # sign itself!?
-                    return "-" + printer(args[1])
-                else:
-                    return "(" + " · ".join(printer(factor)
+                    return "-" + printer(args[1], context)
+                elif (context.surrounding_op == cls._Surr.exp_base
+                      or
+                      (context.surrounding_op == cls._Surr.exp_exp
+                       and
+                       context.is_exponent > 1)):
+                    ctxt = cls._Context(context.is_exponent,
+                                        cls._Surr.multiplication)
+                    return "(" + " · ".join(printer(factor, ctxt)
                                             for factor in args) + ")"
+                else:
+                    ctxt = cls._Context(context.is_exponent,
+                                        cls._Surr.multiplication)
+                    return " · ".join(printer(factor, ctxt)
+                                      for factor in args)
             elif isinstance(expr, sympy.Pow):
                 # TODO: multiple exponents suck in HTML
-                return (
-                    printer(expr.args[0])
-                    + "<sup>" + printer(expr.args[1]) + "</sup>"
-                )
+                # TODO: needs parentheses sometimes!!!!!!!!!!      
+                #    e.g. (x^x)^x^(x^x)^x
+                ctxt_base = cls._Context(context.is_exponent,
+                                         cls._Surr.exp_base)
+                ctxt_exp = cls._Context(context.is_exponent+1,
+                                        cls._Surr.exp_exp)
+                if context.is_exponent:
+                    return (
+                        printer(expr.args[0], ctxt_base)
+                        + "^"
+                        + printer(expr.args[1], ctxt_exp)
+                    )
+                else:
+                    return (
+                        printer(expr.args[0], ctxt_base)
+                        + "<sup>" + printer(expr.args[1], ctxt_exp) + "</sup>"
+                    )
             elif isinstance(expr, sympy.Function):
                 # TODO: sympy.Function -> look up name in a table, the
                 # same table we use to map from string to
                 # function. This table needs to be made, of course,
                 # but it should contain also the help strings.
+                ctxt = cls._Context(context.is_exponent,
+                                    cls._Surr.function_call)
                 return (
                     str(expr.func) + "("
-                    + ", ".join(printer(arg) for arg in expr.args)
+                    + ", ".join(printer(arg, ctxt) for arg in expr.args)
                     + ")"
                 )
             elif isinstance(expr, sympy.Matrix):
@@ -439,11 +562,13 @@ class Result:
                 # a column?)
                 if expr.shape == (1,1):
                     # Treat 1x1 matrix as scalar.
-                    return printer(expr[0])
+                    return printer(expr[0], context)
+                ctxt = cls._Context(context.is_exponent,
+                                    cls._Surr.none)
                 return (
                     "["
                     + ";".join(
-                        ",".join(printer(i) for i in expr.row(j))
+                        ",".join(printer(i, ctxt) for i in expr.row(j))
                         for j in range(expr.rows))
                     + "]"
                 )
@@ -452,7 +577,7 @@ class Result:
                     "Unsupported type for printing: {}. Bug 3a89Bj."
                     "".format(type(expr))
                 )
-        return printer(result)
+        return printer(result, cls._Context(0, cls._Surr.none))
 
     def as_html(self, mode=Mode.to_float,
                 numeral_system=NumeralSystem.decimal,
