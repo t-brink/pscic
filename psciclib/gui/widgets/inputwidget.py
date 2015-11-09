@@ -272,8 +272,10 @@ class InputWidget(QtWidgets.QWidget):
     def update_mode_field(self, exact, trig_mode):
         self.mode_field.setText(
             r'<span style="font-size: small;">'
-            + "{}{}"
+            + "{}{}{}{}"
             "".format(
+                ("PRE " if False else ""),     
+                {"best": "BEST ", "base": "BASE ", "deflt": ""}["deflt"],   
                 ("EXACT " if exact == Mode.try_exact else ""),
                 {"rad": "RAD", "deg": "DEG", "grad": "GRA"}[trig_mode],
             )

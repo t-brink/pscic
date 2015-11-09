@@ -45,6 +45,9 @@ class QuickButtons(QtWidgets.QWidget):
                                      os.path.pardir,
                                      "icons", "adwaita-icon-theme-3.18.0",
                                      "best-units.svg")
+    __use_prefix_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     os.path.pardir,
+                                     "icons", "prefix-path.svg")
     __copy_paste_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                      os.path.pardir,
                                      "icons", "adwaita-icon-theme-3.18.0",
@@ -72,6 +75,12 @@ class QuickButtons(QtWidgets.QWidget):
         self.best_units_btn.setToolTip("Convert result to shortest SI units.")
         self.best_units_btn.clicked.connect(self.best_units_clicked)
 
+        self.use_prefix_btn = QtWidgets.QToolButton(parent=self)
+        self.use_prefix_btn.setIcon(QtGui.QIcon(self.__use_prefix_icon))
+        self.use_prefix_btn.setIconSize(QtCore.QSize(24,24))
+        self.use_prefix_btn.setToolTip("Use SI prefixes.")
+        #self.use_prefix_btn.clicked.connect(self.best_units_clicked)    
+
         self.copy_paste_btn = QtWidgets.QToolButton(parent=self)
         self.copy_paste_btn.setIcon(QtGui.QIcon(self.__copy_paste_icon))
         self.copy_paste_btn.setIconSize(QtCore.QSize(24,24))
@@ -92,6 +101,10 @@ class QuickButtons(QtWidgets.QWidget):
 
         layout.addWidget(self.best_units_btn)
         self.best_units_btn.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
+                                          QtWidgets.QSizePolicy.Fixed)
+
+        layout.addWidget(self.use_prefix_btn)
+        self.use_prefix_btn.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
                                           QtWidgets.QSizePolicy.Fixed)
 
         layout.addWidget(self.copy_paste_btn)
