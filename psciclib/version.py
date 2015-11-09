@@ -17,3 +17,4 @@ version = "0.1dev0" # see PEP 440
 progname = "pscic"
 maintainer = "Tobias Brink <tobias.brink@gmail.com>"
 copyright_years = "2015"
+copyright_authors = "Tobias Brink"

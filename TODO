@@ -14,10 +14,6 @@ In order:
 *** ship a .xml file, so that the currency at least exists?
 ** the above needs a config file and preference dialog
 
-* license [done]
-** some about dialog and "licence" command which outputs all
-   licences of dependencies, too
-
 * Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just
    leave at default output...
