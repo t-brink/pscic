@@ -580,13 +580,48 @@ class Result:
                     return printer(expr[0], context)
                 ctxt = cls._Context(context.is_exponent,
                                     cls._Surr.none)
-                return (
-                    "["
-                    + ";".join(
-                        ",".join(printer(i, ctxt) for i in expr.row(j))
-                        for j in range(expr.rows))
-                    + "]"
+                # Special case 1-row matrix to vector.
+                if expr.shape[0] == 1:
+                    expr = expr.transpose()
+                last = expr.rows - 1
+                # TODO: using float:right always a good idea?
+                retval = (
+                    '<table border="0" cellspacing="0" style="float:right;">'
                 )
+                for i in range(expr.rows):
+                    row = expr.row(i)
+                    retval += "<tr><td>"
+                    if expr.rows == 1:
+                        retval += "["
+                    elif i == 0:
+                        retval += "⎡"
+                    elif i == last:
+                        retval += "⎣"
+                    else:
+                        retval += "⎢"
+                    rowlast = len(row) - 1
+                    for j, item in enumerate(row):
+                        retval += (('<td style="padding-right:15px;">'
+                                    if j < rowlast
+                                    else "<td>")
+                                   + printer(item, ctxt)
+                                   + "</td>")
+                    retval += "<td>"
+                    if expr.rows == 1:
+                        retval += "]"
+                    elif i == 0:
+                        retval += "⎤"
+                    elif i == last:
+                        retval += "⎦"
+                    else:
+                        retval += "⎥"
+                    retval += "</td></tr>"
+                retval += "</table>"
+                return retval
+            elif isinstance(expr, sympy.RootOf):
+                # No symbolic solution available.
+                return printer(expr.evalf(2*digits), # reduce digits later.
+                               context)
             else:
                 raise RuntimeError(
                     "Unsupported type for printing: {}. Bug 3a89Bj."

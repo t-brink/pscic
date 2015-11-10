@@ -14,6 +14,10 @@ In order:
 *** ship a .xml file, so that the currency at least exists?
 ** the above needs a config file and preference dialog
 
+* output:
+** constructs like 12 + -1.111i are still output. That should be
+   12 - 1.111i
+
 * Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just
    leave at default output...
@@ -30,6 +34,10 @@ In order:
 * support functions
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
+
+
+* solving:
+** if we can't solve analytically, try to solve numerically!
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint
@@ -132,6 +140,10 @@ In order:
 ** but: there are no vectors, only row matrices
    this is not user-friendly, as we need to transpose those sometimes
    so: auto-transpose them on evaluation!
+** this has the problem, that we may want to do [u;v;w] * [x,y,z] which is
+   [ux, uy, uz; vx, vy, vz; wx, wy, wz]. so maybe only auto-transpose
+   [u,v,w] * [x,y,z]-style! When the user explicitly uses ";" they know
+   what they are doing! Document this, of course!
 ** needs more support and error checking
 
 * parser
