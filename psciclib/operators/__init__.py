@@ -486,7 +486,7 @@ class Function(Operator):
             else:
                 argtest = arg
             # Check matrix/scalar.
-            if isinstance(argtest, sympy.Matrix):
+            if isinstance(argtest, sympy.ImmutableMatrix):
                 if not argspec.matrix:
                     raise ValueError(
                         "Function {} does not accept matrices "
@@ -609,7 +609,7 @@ class Matrix(Operator):
     def evaluate(self):
         evaluated = [self._eval(*row)
                      for row in self.data]
-        return sympy.Matrix(evaluated)
+        return sympy.ImmutableMatrix(evaluated)
 
     def __str__(self):
         return ("["

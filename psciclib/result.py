@@ -572,7 +572,7 @@ class Result:
                     + ", ".join(printer(arg, ctxt) for arg in expr.args)
                     + ")"
                 )
-            elif isinstance(expr, sympy.Matrix):
+            elif isinstance(expr, sympy.ImmutableMatrix):
                 # TODO: make a table (special case vector to always be
                 # a column?)
                 if expr.shape == (1,1):

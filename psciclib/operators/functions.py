@@ -40,21 +40,21 @@ class ArgCap:
 
 def abs_(x):
     xx = x.magnitude if isinstance(x, unitbridge.Quantity) else x
-    xx = xx.norm() if isinstance(xx, sympy.Matrix) else abs(xx)
+    xx = xx.norm() if isinstance(xx, sympy.ImmutableMatrix) else abs(xx)
     return x.replace_magnitude(xx) if isinstance(x, unitbridge.Quantity) else xx
 
 
 def ensure_matrix(M):
     if isinstance(M, unitbridge.Quantity):
         m = M.magnitude
-        if isinstance(m, sympy.Matrix):
+        if isinstance(m, sympy.ImmutableMatrix):
             u = M.replace_magnitude(1)
-            return sympy.Matrix([[i * u for i in m.row(row)]
-                                 for row in range(m.rows)])
+            return sympy.ImmutableMatrix([[i * u for i in m.row(row)]
+                                          for row in range(m.rows)])
         else:
-            return sympy.Matrix([M])
-    elif not isinstance(M, sympy.Matrix):
-        return sympy.Matrix([M])
+            return sympy.ImmutableMatrix([M])
+    elif not isinstance(M, sympy.ImmutableMatrix):
+        return sympy.ImmutableMatrix([M])
     else:
         return M
 
