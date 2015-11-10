@@ -69,9 +69,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.output_ctrls = OutputCtrls()
         def output_ctrls_changed(*args):
             self.update_mode_field(*args)
-            # TODO: do not re-calculate, but change the output only     
-            #       this needs support in the lower layers              
-            self.calculate(self.input_widget.text)
+            # Update display. TODO: unit mode should be set to something  
+            self.output_widget.update_output(
+                self.last_result, self.calc_exact, self.calc_numeral_system,
+                self.calc_precision, result.UnitMode.none
+            )
         self.output_ctrls.changed.connect(output_ctrls_changed)
 
         # Layout for the widgets.
@@ -84,6 +86,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Assign the input area to the main window.
         self.input_area.setLayout(layout)
         self.setCentralWidget(self.input_area)
+
+        # The calculation result. ######################################
+        self.last_result = None
 
         # Menu bar. ####################################################
         menu_bar = self.menuBar()
@@ -124,14 +129,18 @@ class MainWindow(QtWidgets.QMainWindow):
         if not expr.strip():
             # Empty.
             self.input_widget.set_parsed_field("")
-            self.output_widget.update_output(None, None, None, None, None)
+            self.last_result = None
+            self.output_widget.update_output(self.last_result,
+                                             None, None, None, None)
             return
         # Parse.
         try:
             tree = parseexpr.parse(expr)
         except (Error, pyparsing.ParseException) as e:
             self.input_widget.set_parsed_field("")
-            self.output_widget.update_output(e, None, None, None, None)
+            self.last_result = e
+            self.output_widget.update_output(self.last_result,
+                                             None, None, None, None)
             return
         except Exception as e:
             from .widgets.exceptionbox import exception_box
@@ -142,15 +151,18 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             val = tree.evaluate()
         except ValueError as e:
-            self.output_widget.update_output(e, None, None, None, None)
+            self.last_result = e
+            self.output_widget.update_output(self.last_result,
+                                             None, None, None, None)
             return
         except Exception as e:
             from .widgets.exceptionbox import exception_box
             exception_box(e, self)
             return
         # Output.
+        self.last_result = val
         self.output_widget.update_output(
-            val, self.calc_exact, self.calc_numeral_system,
+            self.last_result, self.calc_exact, self.calc_numeral_system,
             self.calc_precision, unit_mode
         )
 
@@ -170,12 +182,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.input_widget.update_mode_field(exact, self.calc_trigmode)
 
     def to_base_units(self):
-        # TODO: do not re-calculate, but re-print the result!
-        self.calculate(self.input_widget.text, result.UnitMode.to_base)
+        # TODO: to_base should be a toggle button.
+        self.output_widget.update_output(
+            self.last_result, self.calc_exact, self.calc_numeral_system,
+            self.calc_precision, result.UnitMode.to_base
+        )
 
     def to_best_units(self):
-        # TODO: do not re-calculate, but re-print the result!
-        self.calculate(self.input_widget.text, result.UnitMode.to_best)
+        # TODO: to_best should be a toggle button.
+        self.output_widget.update_output(
+            self.last_result, self.calc_exact, self.calc_numeral_system,
+            self.calc_precision, result.UnitMode.to_best
+        )
 
     def copy_paste_mode(self):
         self.sb.set_tmp("Copy/paste mode not implemented")
