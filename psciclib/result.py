@@ -120,6 +120,7 @@ class Result:
         self.input_str = input_str
         self.parsed = parsed
         self.raw_result = raw_result
+        self.__simplified = None # cache simplify()
 
     def n(self, except_classes=(bool, sympy.Integer, sympy.Float)):
         # TODO: this shares a bunch of code with the stuff below, I
@@ -328,8 +329,7 @@ class Result:
         else:
             return str(atom)
 
-    @classmethod
-    def _as_html(cls, raw_result, mode, numeral_system, digits, units):
+    def _as_html(self, raw_result, mode, numeral_system, digits, units):
         # Simplify result.
         if isinstance(raw_result, bool):
             # No need to simplify or do anything else, really.
@@ -340,19 +340,19 @@ class Result:
                 '<table border="0" style="float:right;">'
                 + "".join('<tr><td><i>{!s}</i> = </td><td>{}</td></tr>'
                           ''.format(raw_result.x,
-                                    cls._as_html(i, mode, numeral_system,
-                                                 digits, units))
+                                    self._as_html(i, mode, numeral_system,
+                                                  digits, units))
                           for i in raw_result.solutions)
                 + '</table>'
             )
         elif isinstance(raw_result, sympy.Equality):
             # Unsolved equality.
             return (
-                cls._as_html(raw_result.lhs,
-                             mode, numeral_system, digits, units)
+                self._as_html(raw_result.lhs,
+                              mode, numeral_system, digits, units)
                 + " = "
-                + cls._as_html(raw_result.rhs,
-                               mode, numeral_system, digits, units)
+                + self._as_html(raw_result.rhs,
+                                mode, numeral_system, digits, units)
             )
         elif isinstance(raw_result, (sympy.Rational, sympy.Float)):
             # Those need neither simplify() nor evalf() right now.
@@ -363,7 +363,10 @@ class Result:
                                                      # lowered later.
             elif mode == Mode.try_exact:
                 # Try to simplify first.
-                result = raw_result.simplify()
+                if self.__simplified is None:
+                    # Cache that.
+                    self.__simplified = raw_result.simplify()
+                result = self.__simplified
             else:
                 raise RuntimeError(
                     "Mode is {}, but we can't handle it. "
@@ -393,35 +396,35 @@ class Result:
                 us = "{:~H}".format(u).lstrip("1").lstrip(" ")
                 if us == "dimensionless":
                     return printer(m, context) # keeps context.
-                elif (context.surrounding_op == cls._Surr.exp_base
+                elif (context.surrounding_op == self._Surr.exp_base
                       or
                       (
-                          context.surrounding_op == cls._Surr.exp_exp
+                          context.surrounding_op == self._Surr.exp_exp
                           and
                           context.is_exponent > 1
                       )):
-                    ctxt = cls._Context(context.is_exponent,
-                                        cls._Surr.multiplication)
+                    ctxt = self._Context(context.is_exponent,
+                                         self._Surr.multiplication)
                     return "(" + printer(m, ctxt) + " " + us + ")"
                 else:
-                    ctxt = cls._Context(context.is_exponent,
-                                        cls._Surr.multiplication)
+                    ctxt = self._Context(context.is_exponent,
+                                         self._Surr.multiplication)
                     return printer(m, ctxt) + " " + us
             elif isinstance(expr, sympy.Float):
-                retval = cls._decimal_as_html(expr, numeral_system, digits)
-                if (context.surrounding_op == cls._Surr.exp_base
+                retval = self._decimal_as_html(expr, numeral_system, digits)
+                if (context.surrounding_op == self._Surr.exp_base
                     and expr < 0):
                     retval = "(" + retval + ")"
                 return retval
             elif isinstance(expr, sympy.Integer):
-                retval = cls._integer_as_html(expr, numeral_system, digits)
-                if (context.surrounding_op == cls._Surr.exp_base
+                retval = self._integer_as_html(expr, numeral_system, digits)
+                if (context.surrounding_op == self._Surr.exp_base
                     and expr < 0):
                     retval = "(" + retval + ")"
                 return retval
             elif isinstance(expr, sympy.Rational):
                 if mode == Mode.to_float:
-                    return cls._decimal_as_html(expr, numeral_system, digits)
+                    return self._decimal_as_html(expr, numeral_system, digits)
                 elif expr == sympy.Rational(1,2):
                     return "½"
                 elif expr == sympy.Rational(1,3):
@@ -463,9 +466,9 @@ class Result:
                 elif expr == sympy.Rational(7,8):
                     return "⅞"
                 elif context.is_exponent:
-                    if (context.surrounding_op == cls._Surr.exp_base
+                    if (context.surrounding_op == self._Surr.exp_base
                         or
-                        (context.surrounding_op == cls._Surr.exp_exp
+                        (context.surrounding_op == self._Surr.exp_exp
                          and
                          context.is_exponent > 1
                          )):
@@ -475,7 +478,7 @@ class Result:
                         pre = ""
                         post = ""
                     mid = "/"
-                elif context.surrounding_op == cls._Surr.exp_base:
+                elif context.surrounding_op == self._Surr.exp_base:
                     # TODO: fraction sucks in HTML :-(
                     pre = "(<sup>"
                     mid = "</sup>&frasl;<sub>"
@@ -487,20 +490,20 @@ class Result:
                     post = "</sub>"
                 return (
                     pre
-                    + cls._integer_as_html(expr.p, numeral_system, digits)
+                    + self._integer_as_html(expr.p, numeral_system, digits)
                     + mid
-                    + cls._integer_as_html(expr.q, numeral_system, digits)
+                    + self._integer_as_html(expr.q, numeral_system, digits)
                     + post
                 )
             elif isinstance(expr, sympy.Atom):
-                return cls._atom_as_html(expr, mode, numeral_system, digits)
+                return self._atom_as_html(expr, mode, numeral_system, digits)
             elif isinstance(expr, sympy.Add):
-                ctxt = cls._Context(context.is_exponent,
-                                    cls._Surr.addition)
-                if (context.surrounding_op in {cls._Surr.multiplication,
-                                               cls._Surr.exp_base}
+                ctxt = self._Context(context.is_exponent,
+                                     self._Surr.addition)
+                if (context.surrounding_op in {self._Surr.multiplication,
+                                               self._Surr.exp_base}
                     or
-                    (context.surrounding_op == cls._Surr.exp_exp
+                    (context.surrounding_op == self._Surr.exp_exp
                      and
                      context.is_exponent > 1)):
                     return "(" + " + ".join(printer(summand, ctxt)
@@ -519,32 +522,32 @@ class Result:
                 elif len(args) == 2 and args[0] == -1:
                     # TODO: hopefully the second arg never has a minus
                     # sign itself!?
-                    if context.surrounding_op == cls._Surr.exp_base:
+                    if context.surrounding_op == self._Surr.exp_base:
                         return "(-" + printer(args[1], context) +")"
                     else:
                         return "-" + printer(args[1], context)
-                elif (context.surrounding_op == cls._Surr.exp_base
+                elif (context.surrounding_op == self._Surr.exp_base
                       or
-                      (context.surrounding_op == cls._Surr.exp_exp
+                      (context.surrounding_op == self._Surr.exp_exp
                        and
                        context.is_exponent > 1)):
-                    ctxt = cls._Context(context.is_exponent,
-                                        cls._Surr.multiplication)
+                    ctxt = self._Context(context.is_exponent,
+                                         self._Surr.multiplication)
                     return "(" + " · ".join(printer(factor, ctxt)
                                             for factor in args) + ")"
                 else:
-                    ctxt = cls._Context(context.is_exponent,
-                                        cls._Surr.multiplication)
+                    ctxt = self._Context(context.is_exponent,
+                                         self._Surr.multiplication)
                     return " · ".join(printer(factor, ctxt)
                                       for factor in args)
             elif isinstance(expr, sympy.Pow):
                 # TODO: multiple exponents suck in HTML
                 # TODO: needs parentheses sometimes!!!!!!!!!!      
                 #    e.g. (x^x)^x^(x^x)^x
-                ctxt_base = cls._Context(context.is_exponent,
-                                         cls._Surr.exp_base)
-                ctxt_exp = cls._Context(context.is_exponent+1,
-                                        cls._Surr.exp_exp)
+                ctxt_base = self._Context(context.is_exponent,
+                                          self._Surr.exp_base)
+                ctxt_exp = self._Context(context.is_exponent+1,
+                                         self._Surr.exp_exp)
                 if context.is_exponent:
                     retval = (
                         printer(expr.args[0], ctxt_base)
@@ -556,7 +559,7 @@ class Result:
                         printer(expr.args[0], ctxt_base)
                         + "<sup>" + printer(expr.args[1], ctxt_exp) + "</sup>"
                     )
-                if context.surrounding_op == cls._Surr.exp_base:
+                if context.surrounding_op == self._Surr.exp_base:
                     return "(" + retval + ")"
                 else:
                     return retval
@@ -565,8 +568,8 @@ class Result:
                 # same table we use to map from string to
                 # function. This table needs to be made, of course,
                 # but it should contain also the help strings.
-                ctxt = cls._Context(context.is_exponent,
-                                    cls._Surr.function_call)
+                ctxt = self._Context(context.is_exponent,
+                                     self._Surr.function_call)
                 return (
                     str(expr.func) + "("
                     + ", ".join(printer(arg, ctxt) for arg in expr.args)
@@ -578,8 +581,8 @@ class Result:
                 if expr.shape == (1,1):
                     # Treat 1x1 matrix as scalar.
                     return printer(expr[0], context)
-                ctxt = cls._Context(context.is_exponent,
-                                    cls._Surr.none)
+                ctxt = self._Context(context.is_exponent,
+                                     self._Surr.none)
                 # Special case 1-row matrix to vector.
                 if expr.shape[0] == 1:
                     expr = expr.transpose()
@@ -627,7 +630,7 @@ class Result:
                     "Unsupported type for printing: {}. Bug 3a89Bj."
                     "".format(type(expr))
                 )
-        return printer(result, cls._Context(0, cls._Surr.none))
+        return printer(result, self._Context(0, self._Surr.none))
 
     def as_html(self, mode=Mode.to_float,
                 numeral_system=NumeralSystem.decimal,
