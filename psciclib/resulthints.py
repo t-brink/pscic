@@ -33,7 +33,10 @@ _unit_hint = (
 def get_hints(result, digits):
     hints = set()
     from .result import Solutions
-    if isinstance(result, Solutions):
+    if isinstance(result, bool):
+        # No hints here.
+        pass
+    elif isinstance(result, Solutions):
         # A bunch of solutions.
         for sol in result.solutions:
             hints |= get_hints(sol, digits)

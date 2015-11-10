@@ -105,6 +105,7 @@ In order:
 * support plots
 
 * GUI
+** STIX font or similar for math output
 ** a panel which shows stored custom variables for the session (also one
    should have the ability to define their own variables/functions)
 ** a unit/constant/function/symbol selector (instead of a keypad-thingy)

@@ -408,9 +408,17 @@ class Result:
                                         cls._Surr.multiplication)
                     return printer(m, ctxt) + " " + us
             elif isinstance(expr, sympy.Float):
-                return cls._decimal_as_html(expr, numeral_system, digits)
+                retval = cls._decimal_as_html(expr, numeral_system, digits)
+                if (context.surrounding_op == cls._Surr.exp_base
+                    and expr < 0):
+                    retval = "(" + retval + ")"
+                return retval
             elif isinstance(expr, sympy.Integer):
-                return cls._integer_as_html(expr, numeral_system, digits)
+                retval = cls._integer_as_html(expr, numeral_system, digits)
+                if (context.surrounding_op == cls._Surr.exp_base
+                    and expr < 0):
+                    retval = "(" + retval + ")"
+                return retval
             elif isinstance(expr, sympy.Rational):
                 if mode == Mode.to_float:
                     return cls._decimal_as_html(expr, numeral_system, digits)
@@ -511,7 +519,10 @@ class Result:
                 elif len(args) == 2 and args[0] == -1:
                     # TODO: hopefully the second arg never has a minus
                     # sign itself!?
-                    return "-" + printer(args[1], context)
+                    if context.surrounding_op == cls._Surr.exp_base:
+                        return "(-" + printer(args[1], context) +")"
+                    else:
+                        return "-" + printer(args[1], context)
                 elif (context.surrounding_op == cls._Surr.exp_base
                       or
                       (context.surrounding_op == cls._Surr.exp_exp
@@ -535,16 +546,20 @@ class Result:
                 ctxt_exp = cls._Context(context.is_exponent+1,
                                         cls._Surr.exp_exp)
                 if context.is_exponent:
-                    return (
+                    retval = (
                         printer(expr.args[0], ctxt_base)
                         + "^"
                         + printer(expr.args[1], ctxt_exp)
                     )
                 else:
-                    return (
+                    retval = (
                         printer(expr.args[0], ctxt_base)
                         + "<sup>" + printer(expr.args[1], ctxt_exp) + "</sup>"
                     )
+                if context.surrounding_op == cls._Surr.exp_base:
+                    return "(" + retval + ")"
+                else:
+                    return retval
             elif isinstance(expr, sympy.Function):
                 # TODO: sympy.Function -> look up name in a table, the
                 # same table we use to map from string to
