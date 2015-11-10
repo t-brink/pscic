@@ -256,7 +256,7 @@ class Result:
         return res
 
     @classmethod
-    def _decimal_as_html(cls, number, numeral_system, digits):
+    def _decimal_as_html(cls, number, numeral_system, digits, allow_sup):
         # Special case some floats.
         if number == float("inf"):
             return "∞"
@@ -280,7 +280,11 @@ class Result:
             exp = exp.lstrip("+0")
             if not exp:
                 return pre
-            return pre + "·" + "10<sup>" + exp + "</sup>"
+            # Print exponent-part.
+            if allow_sup:
+                return pre + "·" + "10<sup>" + exp + "</sup>"
+            else:
+                return pre + "e" + exp
         elif numeral_system == NumeralSystem.roman:
             # This may raise a ValueError, if the float does not
             # correspond to an integer in the supported range.
@@ -298,7 +302,7 @@ class Result:
             return cls._to_other_base(number, numeral_system, digits)
 
     @classmethod
-    def _atom_as_html(cls, atom, mode, numeral_system, digits):
+    def _atom_as_html(cls, atom, mode, numeral_system, digits, allow_sup):
         if atom == sympy.I:
             # There is no float representation, return immediately.
             return "i"
@@ -321,7 +325,7 @@ class Result:
                 "".format(mode)
             )
         if isinstance(atom, sympy.Float):
-            return cls._decimal_as_html(atom, numeral_system, digits)
+            return cls._decimal_as_html(atom, numeral_system, digits, allow_sup)
         elif atom == sympy.E:
             return "e" # would be upper case otherwise :-(
         elif atom == sympy.pi:
@@ -411,7 +415,8 @@ class Result:
                                          self._Surr.multiplication)
                     return printer(m, ctxt) + " " + us
             elif isinstance(expr, sympy.Float):
-                retval = self._decimal_as_html(expr, numeral_system, digits)
+                retval = self._decimal_as_html(expr, numeral_system, digits,
+                                               not context.is_exponent)
                 if (context.surrounding_op == self._Surr.exp_base
                     and expr < 0):
                     retval = "(" + retval + ")"
@@ -424,7 +429,8 @@ class Result:
                 return retval
             elif isinstance(expr, sympy.Rational):
                 if mode == Mode.to_float:
-                    return self._decimal_as_html(expr, numeral_system, digits)
+                    return self._decimal_as_html(expr, numeral_system, digits,
+                                                 not context.is_exponent)
                 elif expr == sympy.Rational(1,2):
                     return "½"
                 elif expr == sympy.Rational(1,3):
@@ -496,7 +502,8 @@ class Result:
                     + post
                 )
             elif isinstance(expr, sympy.Atom):
-                return self._atom_as_html(expr, mode, numeral_system, digits)
+                return self._atom_as_html(expr, mode, numeral_system, digits,
+                                          not context.is_exponent)
             elif isinstance(expr, sympy.Add):
                 ctxt = self._Context(context.is_exponent,
                                      self._Surr.addition)
