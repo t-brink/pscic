@@ -124,6 +124,10 @@ class FunctionList:
            (ArgCap(True, False, False),)),
         _f("log2", (), lambda x: sympy.log(x, 2),
            (ArgCap(True, False, False),)),
+        _f("lambertW", ("LambertW", "lambertw", "Lambertw"),
+           sympy.LambertW,
+           (ArgCap(True, False, False),
+            ArgCap(True, False, False, True))),
         # Square root.
         _f("√", ("sqrt",), lambda x: x**sympy.Rational(1/2),
            (ArgCap(True, True, True),)),
