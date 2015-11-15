@@ -70,22 +70,27 @@ class OutputWidget(QtWidgets.QWidget):
     def update_output(self, val, mode, numeral_system, digits, units):
         style = ""
         text = ""
+        ww = False
         if isinstance(val, (exceptions.Error, pyparsing.ParseException)):
             style = "color: red;"
             text = "Parsing error: " + str(val)
             hints = set()
+            ww = True
         elif isinstance(val, ValueError):
             style = "color: red;"
             text = "Value error: " + str(val)
             hints = set()
+            ww = True
         elif val is None:
             # No input string, so show no result.
             style = ""
             text = ""
             hints = set()
+            ww = False
         else:
             # Correct output.
-            style = "font-size: x-large;"
+            style = "font-size: x-large; font-family: STIX;"
+            ww = False
             try:
                 text = val.as_html(mode, numeral_system, digits, units)
                 hints = resulthints.get_hints(val.raw_result, digits)
@@ -93,10 +98,12 @@ class OutputWidget(QtWidgets.QWidget):
                 style = "color: red;"
                 text = "Printing error: " + str(e)
                 hints = set()
+                ww = True
             except Exception as e:
                 from .exceptionbox import exception_box
                 exception_box(e, self)
                 return
+        self.output_field.setWordWrap(ww)
         self.output_field.setText('<span style="{}">'.format(style)
                                   + text
                                   + '</span>')
