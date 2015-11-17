@@ -158,6 +158,11 @@ class FunctionList:
            (ArgCap(True, True, True),)),
         _f("transpose", (), lambda x: ensure_matrix(x).transpose(),
            (ArgCap(True, True, True),)),
+        # Analysis.
+        _f("diff", (), sympy.diff,
+           (ArgCap(True, False, True),
+            ArgCap(True, False, False, True),
+            ArgCap(True, False, False, True))),
         # For debugging.
         _f("raise_", (), raise_, (ArgCap(True, True, True),)),
         _f("complicated_", (), lambda x: sympy.sin(x ** 4) ** (3 ** x) + sympy.Rational(5,2) + (x / sympy.exp(x) )**x + x ** sympy.Rational(1,2) + x ** sympy.Rational(1214,29898299),
