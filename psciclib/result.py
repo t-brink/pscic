@@ -123,7 +123,7 @@ class Result:
         self.is_numerical = is_numerical # obtained by numerical solution,
                                          # should only be true if set by the
                                          # nsolve() method!
-        self.__simplified = None # cache simplify()
+        self.__simplified = {} # cache simplify(), dict for multiple solutions!
 
     @property
     def is_unsolved(self):
@@ -296,7 +296,8 @@ class Result:
     ####################################################################     
 
     @classmethod
-    def _decimal_as_html(cls, number, numeral_system, digits, allow_sup):
+    def _decimal_as_html(cls, number, numeral_system, digits,
+                         allow_sup, is_base):
         # Special case some floats.
         if number == float("inf"):
             return "∞"
@@ -318,13 +319,19 @@ class Result:
                 pre = pre1
             # Exponential part.
             exp = exp.lstrip("+0")
+            # Parentheses.
+            if is_base and ((exp and allow_sup) or pre.startswith("-")):
+                lpar = "("; rpar = ")"
+            else:
+                lpar = ""; rpar = ""
+            # Simple mode.
             if not exp:
-                return pre
+                return lpar + pre + rpar
             # Print exponent-part.
             if allow_sup:
-                return pre + "·" + "10<sup>" + exp + "</sup>"
+                return lpar + pre + "·" + "10<sup>" + exp + "</sup>" + rpar
             else:
-                return pre + "e" + exp
+                return lpar + pre + "e" + exp + rpar
         elif numeral_system == NumeralSystem.roman:
             # This may raise a ValueError, if the float does not
             # correspond to an integer in the supported range.
@@ -342,7 +349,8 @@ class Result:
             return cls._to_other_base(number, numeral_system, digits)
 
     @classmethod
-    def _atom_as_html(cls, atom, mode, numeral_system, digits, allow_sup):
+    def _atom_as_html(cls, atom, mode, numeral_system, digits,
+                      allow_sup, is_base):
         if atom == sympy.I:
             # There is no float representation, return immediately.
             return "i"
@@ -365,7 +373,8 @@ class Result:
                 "".format(mode)
             )
         if isinstance(atom, sympy.Float):
-            return cls._decimal_as_html(atom, numeral_system, digits, allow_sup)
+            return cls._decimal_as_html(atom, numeral_system, digits,
+                                        allow_sup, is_base)
         elif atom == sympy.E:
             return "e" # would be upper case otherwise :-(
         elif atom == sympy.pi:
@@ -406,11 +415,13 @@ class Result:
                 result = raw_result.evalf(digits*10) # precision will be
                                                      # lowered later.
             elif mode == Mode.try_exact:
-                # Try to simplify first.
-                if self.__simplified is None:
-                    # Cache that.
-                    self.__simplified = raw_result.simplify()
-                result = self.__simplified
+                # Try cache first.
+                try:
+                    result = self.__simplified[raw_result]
+                except KeyError:
+                    # Have to simplify, was not done before.
+                    self.__simplified[raw_result] = raw_result.simplify()
+                    result = self.__simplified[raw_result]
             else:
                 raise RuntimeError(
                     "Mode is {}, but we can't handle it. "
@@ -455,11 +466,11 @@ class Result:
                                          self._Surr.multiplication)
                     return printer(m, ctxt) + " " + us
             elif isinstance(expr, sympy.Float):
-                retval = self._decimal_as_html(expr, numeral_system, digits,
-                                               not context.is_exponent)
-                if (context.surrounding_op == self._Surr.exp_base
-                    and expr < 0):
-                    retval = "(" + retval + ")"
+                retval = self._decimal_as_html(
+                    expr, numeral_system, digits,
+                    not context.is_exponent,
+                    context.surrounding_op == self._Surr.exp_base
+                )
                 return retval
             elif isinstance(expr, sympy.Integer):
                 retval = self._integer_as_html(expr, numeral_system, digits)
@@ -469,8 +480,11 @@ class Result:
                 return retval
             elif isinstance(expr, sympy.Rational):
                 if mode == Mode.to_float:
-                    return self._decimal_as_html(expr, numeral_system, digits,
-                                                 not context.is_exponent)
+                    return self._decimal_as_html(
+                        expr, numeral_system, digits,
+                        not context.is_exponent,
+                        context.surrounding_op == self._Surr.exp_base
+                    )
                 elif expr == sympy.Rational(1,2):
                     return "½"
                 elif expr == sympy.Rational(1,3):
@@ -542,22 +556,35 @@ class Result:
                     + post
                 )
             elif isinstance(expr, sympy.Atom):
-                return self._atom_as_html(expr, mode, numeral_system, digits,
-                                          not context.is_exponent)
+                return self._atom_as_html(
+                    expr, mode, numeral_system, digits,
+                    not context.is_exponent,
+                    context.surrounding_op == self._Surr.exp_base
+                )
             elif isinstance(expr, sympy.Add):
                 ctxt = self._Context(context.is_exponent,
                                      self._Surr.addition)
+                summands = [printer(summand, ctxt)
+                            for summand in expr.args]
+                # Put together, avoiding constructs like "1 + -1".
+                the_sum = summands[0]
+                for summand in summands[1:]:
+                    if summand.startswith("-"):
+                        the_sum += " - " + summand[1:]
+                    elif summand.startswith("+"):
+                        the_sum += " + " + summand[1:]
+                    else:
+                        the_sum += " + " + summand
+                # Parentheses.
                 if (context.surrounding_op in {self._Surr.multiplication,
                                                self._Surr.exp_base}
                     or
                     (context.surrounding_op == self._Surr.exp_exp
                      and
                      context.is_exponent > 1)):
-                    return "(" + " + ".join(printer(summand, ctxt)
-                                            for summand in expr.args) + ")"
+                    return "(" + the_sum + ")"
                 else:
-                    return " + ".join(printer(summand, ctxt)
-                                      for summand in expr.args)
+                    return the_sum
             elif isinstance(expr, sympy.Mul):
                 # TODO: fraction (investigate nested Pow)!
                 # TODO: leave out multiplication sign before constant!
@@ -682,8 +709,12 @@ class Result:
     def as_html(self, mode=Mode.to_float,
                 numeral_system=NumeralSystem.decimal,
                 digits=_DEFAULT_DIGITS, units=UnitMode.none):
-        return self._as_html(self.raw_result, mode, numeral_system,
-                             digits, units)
+        retval = self._as_html(self.raw_result, mode, numeral_system,
+                               digits, units)
+        # Use unicode minus signs. TODO: this is hacky.
+        retval = retval.replace("-", "−")
+        #
+        return retval
 
 
 class Solutions:
