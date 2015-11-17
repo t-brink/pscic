@@ -116,11 +116,47 @@ class Result:
     _Context = collections.namedtuple("_context",
                                       ["is_exponent", "surrounding_op"])
 
-    def __init__(self, input_str, parsed, raw_result):
+    def __init__(self, input_str, parsed, raw_result, is_numerical=False):
         self.input_str = input_str
         self.parsed = parsed
         self.raw_result = raw_result
+        self.is_numerical = is_numerical # obtained by numerical solution,
+                                         # should only be true if set by the
+                                         # nsolve() method!
         self.__simplified = None # cache simplify()
+
+    @property
+    def is_unsolved(self):
+        """Is this an equation that was not solved symbolically?"""
+        return isinstance(self.raw_result, sympy.Equality)
+
+    def nsolve(self, x0):
+        """Attempt a numeric solution and return a Result object.
+
+        Will raise a value error if self does not contain an
+        equation. Returns None if no solution was found.
+
+        """
+        if not isinstance(self.raw_result, sympy.Equality):
+            raise ValueError("Trying to solve something that is not an "
+                             "equation.")
+        try:
+            solution = sympy.nsolve(self.raw_result, x0)
+        except ValueError:
+            return None
+        # Wrap in sympy. TODO: precision    
+        solution = (
+            sympy.Float(solution.real, 1000)
+            + sympy.Float(solution.imag, 1000) * sympy.I
+        )
+        return self.__class__(self.input_str,
+                              self.parsed,
+                              solution,
+                              True)
+
+    ####################################################################     
+    # TODO: replace or remove the stuff below ##########################     
+    #vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv#     
 
     def n(self, except_classes=(bool, sympy.Integer, sympy.Float)):
         # TODO: this shares a bunch of code with the stuff below, I
@@ -254,6 +290,10 @@ class Result:
             res = "= " + str(res)
         # TODO: unit thing.
         return res
+
+    #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#     
+    # TODO: replace or remove the stuff above ##########################     
+    ####################################################################     
 
     @classmethod
     def _decimal_as_html(cls, number, numeral_system, digits, allow_sup):

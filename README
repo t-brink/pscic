@@ -7,6 +7,8 @@ Dependencies
 * appdirs          (MIT)
 * sympy            (3-clause BSD)
 * pyqt5 (optional) (GPLv3)
+* STIX fonts (optional)
+  otherwise math output looks worse
 
 later (TODO)
 

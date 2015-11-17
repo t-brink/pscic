@@ -159,6 +159,18 @@ class MainWindow(QtWidgets.QMainWindow):
             from .widgets.exceptionbox import exception_box
             exception_box(e, self)
             return
+        # Solve numerically if needed. TODO: x0 by user!  
+        if val.is_unsolved:
+            try:
+                val_ = val.nsolve(1.0) # todo: x0     
+            except Exception as e:
+                from .widgets.exceptionbox import exception_box
+                exception_box(e, self)
+                return
+            if val_ is not None:
+                # We found a numerical solution.
+                val = val_
+            del val_
         # Output.
         self.last_result = val
         self.output_widget.update_output(

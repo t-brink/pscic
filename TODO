@@ -13,6 +13,8 @@ In order:
    protection and privacy reasons)
 *** ship a .xml file, so that the currency at least exists?
 ** the above needs a config file and preference dialog
+** bring the command line UI up to scratch (printing, numerical
+   solver, ...)
 
 * output:
 ** constructs like 12 + -1.111i are still output. That should be
@@ -37,17 +39,18 @@ In order:
 
 
 * solving:
-** if we can't solve analytically, try to solve numerically!
+** if we can't solve analytically, try to solve numerically! [DONE]
+*** needs input of the starting value x0 (a simple field that reads
+    reals, complex numbers, an some constants)
+*** needs to deal with units.
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint
 ** mostly DONE
-** need to control output (i.e. exact vs float; float precision; ...)
-** remove trailing zeros from floats on output
 ** DOES NOT YET PLAY NICE WITH UNITS! sympy unit support is not up to
    scratch with regard to pint, so we need to hammer those together
    ourselves!
-*** solving equalities with units is not icky. often the solution
+*** solving equalities with units is icky. often the solution
     seems OK, but is not evaluated!
 *** Also missing: unit conversion for solutions.
 ** assumptions for x would be nice!
@@ -111,20 +114,21 @@ In order:
 * a ° postfix operator, which converts to radians
 
 * support plots
+** plot expressions with variables in them (2D plots only for now), auto(?)
+** plot lhs and rhs of equations as input, not auto(?)
 
 * GUI
-** STIX font or similar for math output
 ** a panel which shows stored custom variables for the session (also one
    should have the ability to define their own variables/functions)
+** variables for past answers (history):
+   ans - last answer
+   ans1, ans2, ans3 - past answers, numbered in order
+   ans1.1 - for solutions and similar, reference a specific solution
+*** a solution for the command line would be nice, too! Easy to print
+   these things before the answer even!
 ** a unit/constant/function/symbol selector (instead of a keypad-thingy)
 ** document every function, unit, symbol, variable and (optionally) show
    this somewhere.
-** Math printing could be better, but this is hard. Good enough for now.
-*** QWebView + mathjax is pretty slow but works (ca. 500ms delay before
-    finished....)
-*** katex is great but does not seem to work with QWebView :-(
-*** QWebEngineView is not in Debian????? Because it is a packaging nightmare.
-    That means we should not rely on *any* webview right now!
 ** to best units / to base units  should be toggle-buttons (mutually
    exclusive!)
 
@@ -132,7 +136,7 @@ In order:
 ** calculate everything except them [sympy]
 ** really useful when introducing the = sign, to solve a Dreisatz etc.
 *** needs to auto-solve for equalities (and inequalities) [equalities done]
-** auto-plot?
+** auto-plot, see above
 
 * matrices/vectors
 ** parsing is done
@@ -150,5 +154,5 @@ In order:
 ** accept ²,³,⁴, etc. as ^2 ^3 ^4 etc.
 
 * test:
-** fuzzer: create random valid and invalid expression en masse and try to parse/evaluate
-   them
+** fuzzer: create random valid and invalid expression en masse and try
+   to parse/evaluate them

@@ -93,7 +93,9 @@ class OutputWidget(QtWidgets.QWidget):
             ww = False
             try:
                 text = val.as_html(mode, numeral_system, digits, units)
-                hints = resulthints.get_hints(val.raw_result, digits)
+                hints = resulthints.get_hints(val.raw_result,
+                                              digits,
+                                              val.is_numerical)
             except ValueError as e:
                 style = "color: red;"
                 text = "Printing error: " + str(e)

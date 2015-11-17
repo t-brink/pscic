@@ -260,6 +260,8 @@ class Equality(Operator):
         except NotImplementedError:
             solutions = []
         if not solutions:
+            # Attempting a numerical solution must be initiated later
+            # by the UI, as it needs parameters to fiddle with it.
             return eq
         else:
             return Solutions(_X, solutions)

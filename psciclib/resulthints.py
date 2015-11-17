@@ -25,13 +25,21 @@ _eq_hint = (
     "The equality could not be solved or tested for truth and is "
     "returned in simplified form."
 )
+_numerical_solution_hint = (
+    "The solution could not be obtained analytically. The given solution "
+    "is obtained numerically and may not be the only solution. "
+    "Play with the starting value to find other solutions. "
+    "TODO: UI to input starting value."
+)
 _unit_hint = (
     "The precision of calculations with units may in some cases be less "
     "than requested. This is a bug that will be fixed in the future."
 )
 
-def get_hints(result, digits):
+def get_hints(result, digits, is_numerical):
     hints = set()
+    if is_numerical:
+        hints.add(_numerical_solution_hint)
     from .result import Solutions
     if isinstance(result, bool):
         # No hints here.
@@ -39,7 +47,7 @@ def get_hints(result, digits):
     elif isinstance(result, Solutions):
         # A bunch of solutions.
         for sol in result.solutions:
-            hints |= get_hints(sol, digits)
+            hints |= get_hints(sol, digits, is_numerical)
     else:
         # A single result.
         import sympy
