@@ -588,8 +588,10 @@ class Result:
                 else:
                     ctxt = self._Context(context.is_exponent,
                                          self._Surr.multiplication)
-                    product_str = " · ".join(printer(factor, ctxt)
-                                             for factor in args)
+                    product_str = " ".join(printer(factor, ctxt)
+                                           for factor in args)
+                    #product_str = " · ".join(printer(factor, ctxt)
+                    #                         for factor in args)
                     if prefix == -1:
                         # TODO: hopefully the second arg never has a minus
                         # sign itself!?
