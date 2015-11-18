@@ -193,7 +193,7 @@ class Result:
             return obj.simplify()
 
     _hex_lookup = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                   "A", "B", "C", "D", "E", "F"]
+                   "a", "b", "c", "d", "e", "f"]
     _base_conv = {NumeralSystem.binary: bin,
                   NumeralSystem.octal: oct,
                   NumeralSystem.hexadecimal: hex}

@@ -18,9 +18,23 @@ In order:
 ** busy-cursor!
 *** perhaps a way to cancel long-running calcs!
 
-* output:
-** output still puts multiplication sign between number and letter,
-   looks better without (e.g. 12x instead of 12 · x)
+* actually implement different printing styles for floats (norm, sci,
+  eng, time, ...)
+** norm: as now
+** sci: 1.233e5
+** eng: 123.3e3
+** simple: 123300 (even if precision for the last places is not given!
+   perhaps warn in that case)
+** time: see below, basically 12days 03:12:13
+                           or 12days 3h 12min 13s   (better?)
+
+* Instead of copy-paste mode:
+** When marking (and/or ctrl-c-ing) actually copy the appropriate
+   signs and parentheses that were omitted! I think Qt5 can do it.
+   Do it in ASCII-mode if possible?
+   This would mean copy-paste works automagically!
+   Perhaps needs a switch for ^/** as this is the most annoying and
+   frequent issue that will come up!
 
 * Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just
@@ -39,12 +53,13 @@ In order:
 ** write tests!!!!
 ** also "negative" tests, where we expect failure
 
-
 * solving:
 ** if we can't solve analytically, try to solve numerically! [DONE]
 *** needs input of the starting value x0 (a simple field that reads
     reals, complex numbers, an some constants)
 *** needs to deal with units.
+*** If (seemingly) unsolvable, still provide the x0 field, as the
+    algorithm might have more luck from another starting point.
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint
@@ -143,6 +158,8 @@ In order:
 ** calculate everything except them [sympy]
 ** really useful when introducing the = sign, to solve a Dreisatz etc.
 *** needs to auto-solve for equalities (and inequalities) [equalities done]
+*** if we introduce y/z, always auto-solve for x! the others are just
+    used as placeholders
 ** auto-plot, see above
 
 * matrices/vectors
