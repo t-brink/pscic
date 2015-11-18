@@ -569,34 +569,42 @@ class Result:
                 else:
                     return the_sum
             elif isinstance(expr, sympy.Mul):
-                # TODO: fraction (investigate nested Pow)!
                 # TODO: leave out multiplication sign before constant!
-                args = [factor for factor in expr.args if factor != 1]
+                # Filter arguments.
+                prefix = 1
+                args = []
+                for factor in expr.args:
+                    if factor == -1 or factor == 1: # must be ==-test!
+                        prefix *= factor # throws out 1/-1 while
+                                         # keeping the sign correct.
+                        continue
+                    args.append(factor)
                 if not args:
-                    return "1"
-                elif len(args) == 1:
-                    return printer(args[0], context)
-                elif len(args) == 2 and args[0] == -1:
-                    # TODO: hopefully the second arg never has a minus
-                    # sign itself!?
-                    if context.surrounding_op == self._Surr.exp_base:
-                        return "(-" + printer(args[1], context) +")"
+                    if (prefix == -1
+                        and context.surrounding_op == self._Surr.exp_base):
+                        return "(-1)"
                     else:
-                        return "-" + printer(args[1], context)
-                elif (context.surrounding_op == self._Surr.exp_base
-                      or
-                      (context.surrounding_op == self._Surr.exp_exp
-                       and
-                       context.is_exponent > 1)):
-                    ctxt = self._Context(context.is_exponent,
-                                         self._Surr.multiplication)
-                    return "(" + " · ".join(printer(factor, ctxt)
-                                            for factor in args) + ")"
+                        return str(prefix)
                 else:
                     ctxt = self._Context(context.is_exponent,
                                          self._Surr.multiplication)
-                    return " · ".join(printer(factor, ctxt)
-                                      for factor in args)
+                    product_str = " · ".join(printer(factor, ctxt)
+                                             for factor in args)
+                    if prefix == -1:
+                        # TODO: hopefully the second arg never has a minus
+                        # sign itself!?
+                        if context.surrounding_op == self._Surr.exp_base:
+                            return "(-" + product_str +")"
+                        else:
+                            return "-" + product_str
+                    elif (context.surrounding_op == self._Surr.exp_base
+                          or
+                          (context.surrounding_op == self._Surr.exp_exp
+                           and
+                           context.is_exponent > 1)):
+                        return "(" + product_str +")"
+                    else:
+                        return product_str
             elif isinstance(expr, sympy.Pow):
                 # TODO: multiple exponents suck in HTML
                 # TODO: needs parentheses sometimes!!!!!!!!!!      
