@@ -45,7 +45,7 @@ float_ = Regex(r'''[0-9]+           # integer part
                        (?:          # optional decimal part followed by e-part
                            (?: \.[0-9]* )?
                            [eE]
-                           [-+]?
+                           [-\u2212+]?   # U+2212 is unicode minus
                            [0-9]+
                        )
                        |
@@ -53,6 +53,9 @@ float_ = Regex(r'''[0-9]+           # integer part
                    )''',
                re.VERBOSE)
 float_.setParseAction(operators.process_float)
+
+unicode_fraction = oneOf("½ ⅓ ¼ ⅕ ⅙ ⅐ ⅛ ⅑ ⅒ ⅔ ¾ ⅖ ⅗ ⅘ ⅚ ⅜ ⅝ ⅞")
+unicode_fraction.setParseAction(operators.process_unicode_fraction)
 
 hexint = Group( Literal("0x") + Regex(r'[0-9a-fA-F]+') )
 hexint.setParseAction(operators.process_intbase)
@@ -88,7 +91,7 @@ variable = identifier.copy()
 variable.setParseAction(operators.Constant.process)
 
 number = (
-    float_ | hexreal | octreal | binreal
+    float_ | unicode_fraction | hexreal | octreal | binreal
     | romanint
     | hexint | octint | binint | integer
 )
@@ -96,8 +99,8 @@ number = (
 operand = number | variable
 
 # Operators
-signop = oneOf("+ -")
-addop = oneOf("+ -")
+signop = oneOf("+ - \u2212") # last entry is unicode minus
+addop = oneOf("+ - \u2212")
 multop = oneOf("· * ÷ / //")
 expop = oneOf("^ **")
 factop = Literal("!")

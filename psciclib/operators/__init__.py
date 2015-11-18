@@ -91,6 +91,30 @@ def process_romanint(s, loc, toks):
     return sympy.Integer(i)
 
 
+_uni_fracs = {
+    "½": sympy.Rational(1,2),
+    "⅓": sympy.Rational(1,3),
+    "¼": sympy.Rational(1,4),
+    "⅕": sympy.Rational(1,5),
+    "⅙": sympy.Rational(1,6),
+    "⅐": sympy.Rational(1,7),
+    "⅛": sympy.Rational(1,8),
+    "⅑": sympy.Rational(1,9),
+    "⅒": sympy.Rational(1,10),
+    "⅔": sympy.Rational(2,3),
+    "¾": sympy.Rational(3,4),
+    "⅖": sympy.Rational(2,5),
+    "⅗": sympy.Rational(3,5),
+    "⅘": sympy.Rational(4,5),
+    "⅚": sympy.Rational(5,6),
+    "⅜": sympy.Rational(3,8),
+    "⅝": sympy.Rational(5,8),
+    "⅞": sympy.Rational(7,8),
+}
+def process_unicode_fraction(s, loc, toks):
+    return _uni_fracs[toks[0]]
+
+
 class PscicFloat(sympy.Float):
     """TODO: not a subclass of sympy.Float."""
     def __str__(self):
@@ -289,6 +313,7 @@ class InfixLeftSymbol(InfixSymbol):
         symbols = {
             "+": Plus,
             "-": Minus,
+            "\u2212": Minus,
             "*": Times,
             "·": Times,
             "/": Divide,
@@ -329,7 +354,7 @@ class Plus(InfixLeftSymbol):
 
 
 class Minus(InfixLeftSymbol):
-    symbol = "-"
+    symbol = "-" # Leave at ASCII to save space!
 
     def evaluate(self):
         lhs, rhs = self._eval(self.lhs, self.rhs)
@@ -427,7 +452,7 @@ class PrefixSymbol(SymbolOperator):
         op, rhs = toks[0]
         if op == "+":
             obj = PlusSign(rhs)
-        elif op == "-":
+        elif op in {"-", "\u2212"}:
             obj = MinusSign(rhs)
         else:
             raise ValueError("Unknown prefix operator: {}".format(sign))
@@ -435,7 +460,7 @@ class PrefixSymbol(SymbolOperator):
 
 
 class MinusSign(PrefixSymbol):
-    symbol = "-"
+    symbol = "-" # Leave at ASCII to save space!
 
     def evaluate(self):
         rhs, = self._eval(self.rhs)
