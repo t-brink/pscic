@@ -34,7 +34,14 @@ In order:
    Do it in ASCII-mode if possible?
    This would mean copy-paste works automagically!
    Perhaps needs a switch for ^/** as this is the most annoying and
-   frequent issue that will come up!
+   frequent issue that will come up (see next point)!
+
+* quick buttons:
+** see quickbuttons-overhaul.png (image for "as-is" should be the green
+   one, for "best" the engineeringy one, for "base" something sciency
+   dunno yet)
+** show current mode also in modeline (as-is: "", best: "BEST", base: "BASE")
+** perhaps remove "RAD" from the modeline.
 
 * Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just

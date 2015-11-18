@@ -73,6 +73,9 @@ class InputEdit(QtWidgets.QPlainTextEdit):
         self.selectionChanged.connect(self._match_parentheses)
         self.setBackgroundVisible(True)
 
+        # Disable scrolling in single-line mode.
+        self.verticalScrollBar().valueChanged.connect(self._has_vscrolled)
+
     def sizeHint(self):
         if self.single_line:
             return self._line_edit.sizeHint()
@@ -108,6 +111,12 @@ class InputEdit(QtWidgets.QPlainTextEdit):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setMaximumHeight(self.__deflt_max_height)
+
+    def _has_vscrolled(self, to_value):
+        # In single-line mode, we do not allow scrolling.
+        print("Bad bad bad!")
+        if self.single_line and to_value != 0:
+            self.verticalScrollBar().setValue(0)
 
     def toggle_multi_line(self):
         if self.single_line:
