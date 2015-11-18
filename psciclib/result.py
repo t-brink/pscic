@@ -323,7 +323,7 @@ class Result:
         if number == float("inf"):
             return "∞"
         elif number == float("-inf"):
-            return "-∞"
+            return "(-∞)" if is_base else "-∞"
         # "Normal" floats.
         if numeral_system == NumeralSystem.decimal:
             # Set precision.
@@ -380,7 +380,7 @@ class Result:
         elif atom == sympy.oo:
             return "∞"
         elif atom == -sympy.oo: # this is another type even
-            return "-∞"
+            return "(-∞)" if is_base else "-∞"
         elif isinstance(atom, sympy.numbers.NaN):
             return "NaN"
         # Exact or float?
