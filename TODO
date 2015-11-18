@@ -24,6 +24,9 @@ In order:
 ** a factor of -1 can appear for products with more than one
    factor. This should be simplified in printing: '-1 · i · π' -> '-iπ'!
 
+* input
+** parse everything that is output: unicode minus, unicode fraction, ...
+
 * Roman numerals:
 ** perhaps do not give an error if impossible to convert, but just
    leave at default output...

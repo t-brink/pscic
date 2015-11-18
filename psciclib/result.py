@@ -295,6 +295,27 @@ class Result:
     # TODO: replace or remove the stuff above ##########################     
     ####################################################################     
 
+    __unicode_fractions = {
+        sympy.Rational(1,2): "½", -sympy.Rational(1,2): "-½",
+        sympy.Rational(1,3): "⅓", -sympy.Rational(1,3): "-⅓",
+        sympy.Rational(1,4): "¼", -sympy.Rational(1,4): "-¼",
+        sympy.Rational(1,5): "⅕", -sympy.Rational(1,5): "-⅕",
+        sympy.Rational(1,6): "⅙", -sympy.Rational(1,6): "-⅙",
+        sympy.Rational(1,7): "⅐", -sympy.Rational(1,7): "-⅐",
+        sympy.Rational(1,8): "⅛", -sympy.Rational(1,8): "-⅛",
+        sympy.Rational(1,9): "⅑", -sympy.Rational(1,9): "-⅑",
+        sympy.Rational(1,10):"⅒", -sympy.Rational(1,10):"-⅒",
+        sympy.Rational(2,3): "⅔", -sympy.Rational(2,3): "-⅔",
+        sympy.Rational(3,4): "¾", -sympy.Rational(3,4): "-¾",
+        sympy.Rational(2,5): "⅖", -sympy.Rational(2,5): "-⅖",
+        sympy.Rational(3,5): "⅗", -sympy.Rational(3,5): "-⅗",
+        sympy.Rational(4,5): "⅘", -sympy.Rational(4,5): "-⅘",
+        sympy.Rational(5,6): "⅚", -sympy.Rational(5,6): "-⅚",
+        sympy.Rational(3,8): "⅜", -sympy.Rational(3,8): "-⅜",
+        sympy.Rational(5,8): "⅝", -sympy.Rational(5,8): "-⅝",
+        sympy.Rational(7,8): "⅞", -sympy.Rational(7,8): "-⅞",
+    }
+
     @classmethod
     def _decimal_as_html(cls, number, numeral_system, digits,
                          allow_sup, is_base):
@@ -485,46 +506,8 @@ class Result:
                         not context.is_exponent,
                         context.surrounding_op == self._Surr.exp_base
                     )
-                elif expr == sympy.Rational(1,2):
-                    return "½"
-                elif expr == sympy.Rational(1,3):
-                    return "⅓"
-                elif expr == sympy.Rational(1,4):
-                    return "¼"
-                elif expr == sympy.Rational(1,5):
-                    return "⅕"
-                elif expr == sympy.Rational(1,6):
-                    return "⅙"
-                elif expr == sympy.Rational(1,7):
-                    return "⅐"
-                elif expr == sympy.Rational(1,8):
-                    return "⅛"
-                elif expr == sympy.Rational(1,9):
-                    return "⅑"
-                elif expr == sympy.Rational(1,10):
-                    return "⅒"
-                elif expr == sympy.Rational(1,10):
-                    return "⅒"
-                elif expr == sympy.Rational(2,3):
-                    return "⅔"
-                elif expr == sympy.Rational(3,4):
-                    return "¾"
-                elif expr == sympy.Rational(3,4):
-                    return "¾"
-                elif expr == sympy.Rational(2,5):
-                    return "⅖"
-                elif expr == sympy.Rational(3,5):
-                    return "⅗"
-                elif expr == sympy.Rational(4,5):
-                    return "⅘"
-                elif expr == sympy.Rational(5,6):
-                    return "⅚"
-                elif expr == sympy.Rational(3,8):
-                    return "⅜"
-                elif expr == sympy.Rational(5,8):
-                    return "⅝"
-                elif expr == sympy.Rational(7,8):
-                    return "⅞"
+                elif expr in self.__unicode_fractions:
+                    return self.__unicode_fractions[expr]
                 elif context.is_exponent:
                     if (context.surrounding_op == self._Surr.exp_base
                         or
