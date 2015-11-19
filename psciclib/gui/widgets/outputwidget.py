@@ -76,6 +76,7 @@ class OutputWidget(QtWidgets.QWidget):
             text = "Parsing error: " + str(val)
             hints = set()
             ww = True
+            # TODO: mark the error with pyparsing.ParseException.{lineno,col}
         elif isinstance(val, ValueError):
             style = "color: red;"
             text = "Value error: " + str(val)
