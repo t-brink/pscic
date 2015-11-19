@@ -36,7 +36,8 @@ class Quantity(AtomicExpr):
         obj = super().__new__(cls, **assumptions)
         if not isinstance(quantity, Q_):
             raise TypeError("quantity must be a pint Quantity.")
-        obj.quantity = quantity
+        obj.quantity = Q_(sympy.sympify(quantity.magnitude),
+                          quantity.units)
         obj._str_rep = ("{:~}".format(quantity))
         return obj
 
