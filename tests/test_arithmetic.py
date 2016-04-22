@@ -392,8 +392,8 @@ class TestParser(TestCase):
         self.assertEqual(pe("1 m m"), 1*ureg.meter**2)
         self.assertEqual(pe("1 m^-1"), 1/ureg.meter)
         self.assertEqual(pe("1*m^-1"), 1/ureg.meter)
-        self.assertEqual(pe("1 m^-2"), ureg.meter**(-2))
-        self.assertEqual(pe("1*m^-2"), ureg.meter**(-2))
+        self.assertEqual(pe("1 m^-2"), (1*ureg.meter)**(-2))
+        self.assertEqual(pe("1*m^-2"), (1*ureg.meter)**(-2))
 
     def test_intbases(self):
         self.assertEqual(pe("0b110001110101"), 0b110001110101)
@@ -534,11 +534,11 @@ class TestParser(TestCase):
 
 class TestUnits(TestCase):
     def test_conversion(self):
-        self.assertEqual(pe("1*in to cm"), 1*ureg.inch.to(ureg.centimeter))
-        self.assertEqual(pe("1in to cm"), 1*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("1*in to cm"), (1*ureg.inch).to(ureg.centimeter))
+        self.assertEqual(pe("1in to cm"), (1*ureg.inch).to(ureg.centimeter))
         self.assertEqual(pe("1/in to 1/cm"), (1 / ureg.inch).to(1/ureg.centimeter))
-        self.assertEqual(pe("2*in to cm"), 2*ureg.inch.to(ureg.centimeter))
-        self.assertEqual(pe("2in to cm"), 2*ureg.inch.to(ureg.centimeter))
+        self.assertEqual(pe("2*in to cm"), (2*ureg.inch).to(ureg.centimeter))
+        self.assertEqual(pe("2in to cm"), (2*ureg.inch).to(ureg.centimeter))
         self.assertEqual(pe("2/in to 1/cm"), (2 / ureg.inch).to(1/ureg.centimeter))
 
     def test_null_conversion(self):
@@ -558,9 +558,9 @@ class TestUnits(TestCase):
 
     def test_addition(self):
         self.assertAlmostEqual(pe("1cm + 1in to m"),
-                               (ureg.cm + ureg.inch).to(ureg.meter))
+                               (1*ureg.cm + 1*ureg.inch).to(ureg.meter))
         self.assertAlmostEqual(pe("1cm - 1in to m"),
-                               (ureg.cm - ureg.inch).to(ureg.meter))
+                               (1*ureg.cm - 1*ureg.inch).to(ureg.meter))
 
 
 class TestFunctions(TestCase):

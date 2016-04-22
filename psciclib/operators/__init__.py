@@ -610,7 +610,7 @@ class Unit(Constant):
     @classmethod
     def process_dimensionless(cls, s, loc, toks):
         name = "1"
-        return cls(name, unitbridge.Quantity(units.ureg.dimensionless))
+        return cls(name, unitbridge.Quantity(1 * units.ureg.dimensionless))
 
 
 class Matrix(Operator):
