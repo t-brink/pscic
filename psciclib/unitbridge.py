@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -225,8 +225,8 @@ class Quantity(AtomicExpr):
     def __hash__(self):
         return hash(
             (self.__class__.__name__,
-             self.quantity.magnitude)
-            + tuple(sorted(self.quantity.units.items()))
+             self.quantity.magnitude,
+             self.quantity.units)
         )
 
     def evalf(self, *args, **kwargs):
