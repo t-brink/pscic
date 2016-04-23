@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,9 +29,7 @@ from .. import units
 from .. import unitbridge
 from ..result import RomanInt, Result, Solutions
 from .functions import FunctionList
-
-
-_X = sympy.Symbol("x")
+from .constants import ConstantList, _X
 
 
 class Wrapper:
@@ -532,28 +530,12 @@ class Constant(Operator):
     # Constants and variables (which are nothing but constants here in
     # terms of implementation).
 
-    _D = collections.namedtuple("_D", ["canonical_name", "value"])
-
-    _constants_and_variables = {
-        "e": _D("e", sympy.E),
-        "i": _D("i", sympy.I),
-        "pi": _D("π", sympy.pi),
-        "π": _D("π", sympy.pi),
-        "oo": _D("∞", sympy.oo),
-        "inf": _D("∞", sympy.oo),
-        "∞": _D("∞", sympy.oo),
-        "zoo": _D("z∞", sympy.zoo),
-        "z∞": _D("z∞", sympy.zoo),
-
-        # Variables.
-        "x": _D("x", _X),
-    }
-
     @classmethod
     def process(cls, s, loc, toks):
         # Try to find constant.
         try:
-            name, value = cls._constants_and_variables[toks[0]]
+            name = ConstantList.canonical_name[toks[0]]
+            value = ConstantList.constants[toks[0]]
         except KeyError:
             # Perhaps it is a unit known by pint?
             try:

@@ -1,0 +1,19 @@
+------------------------------------------------------------------------------
+\\
+arXiv:1507.07956
+From: Peter Mohr
+Date: Tue, 21 Jul 2015 14:54:19 GMT   (14kb)
+
+Title: CODATA Recommended Values of the Fundamental Physical Constants: 2014
+Authors: Peter J. Mohr, David B. Newell, Barry N. Taylor
+Categories: physics.atom-ph physics.chem-ph physics.data-an
+Comments: 11 pages, 8 tables
+License: http://creativecommons.org/publicdomain/zero/1.0/
+\\
+  This report gives the 2014 self-consistent set of values of the constants and
+conversion factors of physics and chemistry recommended by the Committee on
+Data for Science and Technology (CODATA). These values are based on a
+least-squares adjustment that takes into account all data available up to 31
+December 2014. The recommended values may also be found on the World Wide Web
+at physics.nist.gov/constants.
+\\

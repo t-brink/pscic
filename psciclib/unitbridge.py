@@ -33,6 +33,10 @@ class Quantity(AtomicExpr):
     _op_priority = 10000.0
 
     def __new__(cls, quantity, **assumptions):
+        # Also make this a "copy operator".
+        if isinstance(quantity, cls):
+            quantity = quantity.quantity
+        # Start creating a new object.
         obj = super().__new__(cls, **assumptions)
         if not isinstance(quantity, Q_):
             raise TypeError("quantity must be a pint Quantity.")
