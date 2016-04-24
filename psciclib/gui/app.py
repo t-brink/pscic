@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -179,9 +179,14 @@ class MainWindow(QtWidgets.QMainWindow):
         )
 
     def calculate(self, expr, unit_mode=result.UnitMode.none):
-        tic = time.time()
-        self._calculate(expr, unit_mode)
-        toc = time.time()
+        # busy-cursor
+        self.setCursor(Qt.WaitCursor)
+        try:
+            tic = time.time()
+            self._calculate(expr, unit_mode)
+            toc = time.time()
+        finally:
+            self.setCursor(Qt.ArrowCursor)
         self.sb.set_walltime(toc-tic)
 
     def update_mode_field(self, exact, float_display, numeral_system,

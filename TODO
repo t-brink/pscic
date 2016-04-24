@@ -15,7 +15,7 @@ In order:
 ** the above needs a config file and preference dialog
 ** bring the command line UI up to scratch (printing, numerical
    solver, ...)
-** busy-cursor!
+** busy-cursor! [done]
 *** perhaps a way to cancel long-running calcs!
 
 * actually implement different printing styles for floats (norm, sci,
@@ -120,7 +120,10 @@ In order:
 ** Parse multiplied units like Js = J*s; this may be ambiguous! Be careful!
 ** get a list of all supported unit strings: ureg._units.keys()
 ** some short units are bad special case them: 
-*** h is planck, not hour
+*** h is planck, not hour (that should maybe be a user option, given
+    that h for planck makes sense and I have gradually gotten used to
+    hr for hour); perhaps make a hint when using "h": this hint should
+    contain a button to disable this hint in the future.
 *** pt is pint not point
 *** ...
 ** optionally(?) auto-apply prefixes (1200m -> 1.2km)
