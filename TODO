@@ -2,19 +2,21 @@ In order:
 
 * BEFORE ADVERTISING IT TO THE PUBLIC:
 ** move all initialization code in modules into functions
-   (that is for code like downloading currency data)
-*** not for stuff that is needed, like monkey-patching pint for sympy
-*** this includes:
-**** psciclib.paths: create cache/preference/... directories
-**** psciclib.units: download and parse currency data
+   (that is for code like downloading currency data) [done]
+*** currently still automatically called when importing psciclib
 ** call that code when starting the UI (and when running tests,
    although with download disabled!)
 ** make the currency download optional and ask the user (data
    protection and privacy reasons)
 *** ship a .xml file, so that the currency at least exists?
+*** when the currency data is out of date, show a hint which
+    gives you the options: a) auto-download data, b) update data now,
+    c) ignore this hint forever. That way we don't need a modal dialog
+    or something when the user first starts the app. If the user never
+    converts currencies, they never have to deal with that stuff. And
+    if they do care, they will have to deal with it at the exact
+    moment they care about it with one click.
 ** the above needs a config file and preference dialog
-** bring the command line UI up to scratch (printing, numerical
-   solver, ...)
 ** busy-cursor! [done]
 *** perhaps a way to cancel long-running calcs!
 
@@ -67,6 +69,8 @@ In order:
 *** needs to deal with units.
 *** If (seemingly) unsolvable, still provide the x0 field, as the
     algorithm might have more luck from another starting point.
+    This is for example the case for sin(x) = exp(x), where starting
+    from 1.0 does not converge, while starting from -3 finds a root!
 
 * SYMPY may be the solution to a lot of stuff, it uses mpmath and can be exact.
   Just need to get it to play nice with pint
@@ -142,6 +146,10 @@ In order:
    At least that gives full control.
 ** units that are words should have plurals. limitation of pint: it
    parses, e.g., "2 days" but outputs "2 day".
+
+* hints:
+** when they are disabled by the user, still expose a preference to
+   enable them again!
 
 * a ° postfix operator, which converts to radians
 

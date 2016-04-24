@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,5 +45,12 @@ while True:
     except ValueError as e:
         print("ValueError:", e)
         continue
+    # Solve numerically if needed. TODO: some way for the user to provide x0 
+    if val.is_unsolved:
+        val_ = val.nsolve(1.0) # TODO: x0 from user 
+        if val_ is not None:
+            # We found a numerical solution.
+            val = val_
+        del val_
     # TODO: make format options available somehow
     print(val.as_string())
