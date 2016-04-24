@@ -238,9 +238,9 @@ class Quantity(AtomicExpr):
                                  self.quantity.units))
     n = evalf
 
-def _init():
-    # Monkey-patch pint Quantity.
-    Q_._sympy_ = lambda self: Quantity(self)
+
+# Monkey-patch pint Quantity.
+Q_._sympy_ = lambda self: Quantity(self)
 
 
 # see also

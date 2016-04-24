@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,5 +16,5 @@
 version = "0.1dev0" # see PEP 440
 progname = "pscic"
 maintainer = "Tobias Brink <tobias.brink@gmail.com>"
-copyright_years = "2015"
+copyright_years = "2015, 2016"
 copyright_authors = "Tobias Brink"

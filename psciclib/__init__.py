@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@ __version__ = version.version
 
 # Make sure to run necessary init code.
 def init():
-    # Set up currencies.
+    # Set up directories (cache, config, etc.)
+    from . import paths
+    paths.make_paths()
+    # Set up currencies and get exchange rates from the ECB.
     from . import units
     units._init()
-    # Monkey-patch pint Quantity for sympy compatibility.
-    from . import unitbridge
-    unitbridge._init()
 init()

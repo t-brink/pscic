@@ -189,5 +189,4 @@ class FunctionList:
                 cls.nargs_min[name] = n
                 cls.nargs_max[name] = len(func.args)
 
-# TODO: init here?
 FunctionList.init()

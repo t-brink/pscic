@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,3 @@ def make_paths():
     except FileExistsError:
         # Already exists.
         pass
-
-
-#TODO: put into some sort of init that is called centrally
-make_paths()
