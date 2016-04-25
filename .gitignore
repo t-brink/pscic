@@ -5,3 +5,7 @@ __pycache__
 # I keep interesting icons on my computer in this directory. Those are not
 # used right now and should therefore not be redistributed ATM.
 /ICONS
+
+# Isotope mass data, scraped from http://www.ciaaw.org/, copyright
+# unclear. Do not store in repo for legal reasons.
+data/isotope_masses.table.html
