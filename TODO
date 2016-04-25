@@ -192,9 +192,6 @@ In order:
    what they are doing! Document this, of course!
 ** needs more support and error checking
 
-* parser
-** accept ²,³,⁴, etc. as ^2 ^3 ^4 etc.
-
 * test:
 ** fuzzer: create random valid and invalid expression en masse and try
    to parse/evaluate them

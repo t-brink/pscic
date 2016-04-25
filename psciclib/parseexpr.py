@@ -1,4 +1,4 @@
-# Copyright (C) 2015  Tobias Brink
+# Copyright (C) 2015, 2016  Tobias Brink
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -225,8 +225,27 @@ equality.setParseAction(operators.Equality.process)
 cmdln = conversion_cmd | equality | expr
 
 
+# Support for unicode exponents by pre-processing.
+def preprocess(string):
+    """Replaces unicode exponents.
+
+    WARNING: x²³ = x^(2^3) = x^8
+
+    """
+    return string.replace("¹", "^1") \
+                 .replace("²", "^2") \
+                 .replace("³", "^3") \
+                 .replace("⁴", "^4") \
+                 .replace("⁵", "^5") \
+                 .replace("⁶", "^6") \
+                 .replace("⁷", "^7") \
+                 .replace("⁸", "^8") \
+                 .replace("⁹", "^9") \
+                 .replace("⁰", "^0")
+
 # Parse it.
 def parse(string):
+    string = preprocess(string)
     return operators.Wrapper(
         string,
         cmdln.parseString(string, parseAll=True)[0]
